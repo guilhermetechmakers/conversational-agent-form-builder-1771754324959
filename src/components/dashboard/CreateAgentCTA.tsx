@@ -18,11 +18,16 @@ export function CreateAgentCTA({ className }: CreateAgentCTAProps) {
       <Button
         asChild
         size="lg"
-        className="h-14 px-6 rounded-full shadow-glow hover:scale-105 transition-all duration-300"
+        className={cn(
+          'h-12 px-5 shadow-card md:h-14 md:px-6',
+          'rounded-lg transition-all duration-300',
+          'hover:scale-[1.02] hover:shadow-glow active:scale-[0.98]',
+          'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+        )}
       >
-        <Link to="/dashboard/agents/new">
-          <Plus className="h-6 w-6" />
-          Create Agent
+        <Link to="/dashboard/agents/new" className="flex items-center gap-2">
+          <Plus className="h-5 w-5 shrink-0" aria-hidden />
+          <span>Create Agent</span>
         </Link>
       </Button>
     </div>
