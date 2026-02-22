@@ -8,7 +8,14 @@ import {
   Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -17,7 +24,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Skeleton } from '@/components/ui/skeleton'
 import type { AgentListItem } from '@/api/agents'
 import { cn } from '@/lib/utils'
 
@@ -28,19 +34,46 @@ export interface AgentListProps {
   className?: string
 }
 
-function AgentCardSkeleton() {
+function AgentListSkeleton() {
   return (
-    <div className="rounded-xl border border-border p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-24" />
-          </div>
+    <div className="flex-1 bg-card rounded-lg shadow-md p-6">
+      <div className="animate-pulse">
+        <div className="h-6 w-32 bg-muted rounded mb-4" />
+        <div className="space-y-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-8 bg-muted rounded-md" />
+          ))}
         </div>
-        <Skeleton className="h-6 w-16 rounded-full" />
+        <div className="h-10 w-32 rounded-full bg-muted mt-4" />
       </div>
+    </div>
+  )
+}
+
+function AgentListEmpty() {
+  return (
+    <div
+      className="flex-1 bg-card rounded-lg shadow-md p-6 flex flex-col items-center justify-center min-h-[320px]"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="flex justify-center items-center h-64 bg-card rounded-lg w-full">
+        <Bot className="h-16 w-16 text-muted-foreground" aria-hidden />
+      </div>
+      <h3 className="text-muted-foreground font-semibold text-center mt-4">
+        No agents yet
+      </h3>
+      <p className="text-muted-foreground text-center max-w-sm mt-2">
+        Create your first conversational agent to start collecting leads and data
+        through natural chat.
+      </p>
+      <Button
+        asChild
+        aria-label="Create your first agent"
+        className="bg-primary text-primary-foreground font-medium rounded-full px-6 py-3 mt-4 transition-all duration-200 hover:scale-[1.02] hover:bg-secondary-accent"
+      >
+        <Link to="/dashboard/agents/new">Create your first agent</Link>
+      </Button>
     </div>
   )
 }
@@ -52,79 +85,133 @@ export function AgentList({
   className,
 }: AgentListProps) {
   if (isLoading) {
-    return (
-      <Card className={cn('lg:col-span-2', className)}>
-        <CardHeader>
-          <Skeleton className="h-6 w-24" />
-          <Skeleton className="h-4 w-48" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <AgentCardSkeleton key={i} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    )
+    return <AgentListSkeleton />
   }
 
   if (agents.length === 0) {
-    return (
-      <Card className={cn('lg:col-span-2', className)}>
-        <CardHeader>
-          <CardTitle>Agents</CardTitle>
-          <CardDescription>Your conversational agents</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div
-            className="flex flex-col items-center justify-center py-12 px-4 text-center animate-fade-in"
-            role="status"
-            aria-live="polite"
-          >
-            <div className="rounded-full bg-primary/10 p-5 mb-6 ring-4 ring-primary/5">
-              <Bot className="h-12 w-12 text-primary" aria-hidden />
-            </div>
-            <h3 className="font-semibold text-xl mb-2 text-foreground">
-              No agents yet
-            </h3>
-            <p className="text-muted-foreground mb-2 max-w-sm text-base leading-relaxed">
-              Create your first conversational agent to start collecting leads and
-              data through natural chat.
-            </p>
-            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-              Add form fields, configure persona, and publish your public chat link.
-            </p>
-            <Button
-              asChild
-              aria-label="Create your first agent"
-              className="transition-all duration-200 hover:scale-[1.02] hover:shadow-glow"
-            >
-              <Link to="/dashboard/agents/new">Create your first agent</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
+    return <AgentListEmpty />
   }
 
   return (
-    <Card className={cn('lg:col-span-2', className)}>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Agents</CardTitle>
-          <CardDescription>Your conversational agents</CardDescription>
+    <div
+      className={cn(
+        'flex-1 bg-card rounded-lg shadow-md p-6 overflow-hidden',
+        className
+      )}
+    >
+      <div className="overflow-x-auto">
+        {/* Desktop: Table */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="py-2 text-muted-foreground font-medium">
+                  Agent
+                </TableHead>
+                <TableHead className="py-2 text-muted-foreground font-medium">
+                  Sessions
+                </TableHead>
+                <TableHead className="py-2 text-muted-foreground font-medium">
+                  Conversion
+                </TableHead>
+                <TableHead className="py-2 text-muted-foreground font-medium">
+                  Status
+                </TableHead>
+                <TableHead className="py-2 text-muted-foreground font-medium text-right">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {agents.map((agent) => (
+                <TableRow
+                  key={agent.id}
+                  className="border-border hover:bg-muted transition-all duration-200"
+                >
+                  <TableCell className="py-2 text-foreground">
+                    <Link
+                      to={`/dashboard/agents/${agent.id}`}
+                      className="font-medium hover:text-primary transition-colors"
+                    >
+                      {agent.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="py-2 text-foreground">
+                    {agent.sessionsCount}
+                  </TableCell>
+                  <TableCell className="py-2 text-foreground">
+                    {agent.conversionRate}%
+                  </TableCell>
+                  <TableCell className="py-2">
+                    <Badge
+                      variant={agent.status === 'published' ? 'default' : 'secondary'}
+                      className={cn(
+                        agent.status === 'published' &&
+                          'bg-success/20 text-success border-0'
+                      )}
+                    >
+                      {agent.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="py-2 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-primary hover:text-secondary-accent hover:bg-transparent transition-colors"
+                          aria-label="Agent actions"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link to={`/chat/${agent.slug}`} target="_blank">
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Open
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to={`/dashboard/agents/${agent.id}`}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            const url = `${window.location.origin}/chat/${agent.slug}`
+                            navigator.clipboard.writeText(url)
+                            toast.success('Link copied to clipboard')
+                          }}
+                        >
+                          <Share2 className="mr-2 h-4 w-4" />
+                          Share Link
+                        </DropdownMenuItem>
+                        {onDelete && (
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => onDelete(agent)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
-        <Button asChild size="sm" aria-label="Create new agent">
-          <Link to="/dashboard/agents/new">Create</Link>
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+
+        {/* Mobile: Cards */}
+        <div className="md:hidden space-y-4">
           {agents.map((agent) => (
             <div
               key={agent.id}
-              className="group flex items-center justify-between rounded-xl border border-border p-4 transition-all duration-200 hover:border-primary/50 hover:shadow-card"
+              className="flex items-center justify-between rounded-xl border border-border p-4 transition-all duration-200 hover:border-primary/50 hover:shadow-card"
             >
               <Link
                 to={`/dashboard/agents/${agent.id}`}
@@ -145,9 +232,8 @@ export function AgentList({
                 <Badge
                   variant={agent.status === 'published' ? 'default' : 'secondary'}
                   className={cn(
-                    agent.status === 'published'
-                      ? 'bg-success/20 text-success'
-                      : ''
+                    agent.status === 'published' &&
+                      'bg-success/20 text-success border-0'
                   )}
                 >
                   {agent.status}
@@ -157,7 +243,7 @@ export function AgentList({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9"
+                      className="h-9 w-9 text-primary hover:text-secondary-accent"
                       aria-label="Agent actions"
                     >
                       <MoreHorizontal className="h-4 w-4" />
@@ -201,7 +287,7 @@ export function AgentList({
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

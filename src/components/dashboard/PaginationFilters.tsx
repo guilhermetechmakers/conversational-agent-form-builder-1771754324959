@@ -180,7 +180,7 @@ export function PaginationFilters({
           {onStatusChange && (
             <Select value={status ?? 'all'} onValueChange={onStatusChange}>
               <SelectTrigger
-                className="w-full sm:w-[160px] min-w-0"
+                className="w-full sm:w-[160px] min-w-0 bg-card text-muted-foreground rounded-md px-3 py-2 focus:ring-2 focus:ring-primary"
                 aria-label="Filter by status"
               >
                 <SelectValue placeholder="Status" />

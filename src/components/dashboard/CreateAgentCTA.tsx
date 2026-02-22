@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export interface CreateAgentCTAProps {
@@ -15,25 +14,18 @@ export function CreateAgentCTA({ className }: CreateAgentCTAProps) {
         className
       )}
     >
-      <Button
-        asChild
-        size="lg"
+      <Link
+        to="/dashboard/agents/new"
         className={cn(
-          'h-12 px-5 shadow-card md:h-14 md:px-6',
-          'rounded-lg transition-all duration-300',
-          'hover:scale-[1.02] hover:shadow-glow active:scale-[0.98]',
-          'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+          'flex items-center gap-2 bg-primary text-primary-foreground font-medium rounded-full px-6 py-3 shadow-lg',
+          'transition-all duration-200 hover:bg-secondary-accent hover:scale-[1.02] active:scale-[0.98]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background'
         )}
+        aria-label="Create new agent"
       >
-        <Link
-          to="/dashboard/agents/new"
-          className="flex items-center gap-2"
-          aria-label="Create new agent"
-        >
-          <Plus className="h-5 w-5 shrink-0" aria-hidden />
-          <span>Create Agent</span>
-        </Link>
-      </Button>
+        <Plus className="h-5 w-5 shrink-0" aria-hidden />
+        <span>Create Agent</span>
+      </Link>
     </div>
   )
 }

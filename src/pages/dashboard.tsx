@@ -81,35 +81,62 @@ export function DashboardPage() {
 
   return (
     <div
-      className="space-y-8 animate-fade-in"
+      className="flex flex-1 flex-col md:flex-row gap-6 animate-fade-in"
       role="main"
       aria-busy={isInitialLoading}
       aria-label="Dashboard overview"
     >
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Overview of your agents and sessions
-        </p>
-      </div>
+      {/* Main content: Agent List */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="mb-4">
+          <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">
+            Overview of your agents and sessions
+          </p>
+        </div>
 
-      <QuickStatsPanel
-        stats={stats}
-        isLoading={statsLoading}
-        error={
-          statsError && statsErrorDetail instanceof Error
-            ? statsErrorDetail.message
-            : statsError
-              ? 'Failed to load statistics'
-              : null
-        }
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <AgentList
           agents={agents}
           isLoading={agentsLoading}
           onDelete={handleDeleteAgent}
+        />
+
+        <PaginationFilters
+          status={statusFilter}
+          onStatusChange={setStatusFilter}
+          dateFrom={dateFrom || undefined}
+          dateTo={dateTo || undefined}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+          page={agentsPage}
+          totalPages={agentsTotalPages}
+          totalItems={agentsTotal}
+          onPageChange={setAgentsPage}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+          isLoading={agentsLoading}
+          error={
+            agentsError && agentsErrorDetail instanceof Error
+              ? agentsErrorDetail.message
+              : agentsError
+                ? 'Failed to load data'
+                : null
+          }
+        />
+      </div>
+
+      {/* Side panel: Quick Stats + Recent Sessions */}
+      <div className="flex flex-col gap-6 md:w-80 lg:w-96 shrink-0">
+        <QuickStatsPanel
+          stats={stats}
+          isLoading={statsLoading}
+          error={
+            statsError && statsErrorDetail instanceof Error
+              ? statsErrorDetail.message
+              : statsError
+                ? 'Failed to load statistics'
+                : null
+          }
         />
         <RecentSessionsFeed
           sessions={sessions}
@@ -123,31 +150,9 @@ export function DashboardPage() {
                 : undefined
           }
           onRetry={() => refetchSessions()}
+          className="flex-1 min-h-0"
         />
       </div>
-
-      <PaginationFilters
-        status={statusFilter}
-        onStatusChange={setStatusFilter}
-        dateFrom={dateFrom || undefined}
-        dateTo={dateTo || undefined}
-        onDateFromChange={setDateFrom}
-        onDateToChange={setDateTo}
-        page={agentsPage}
-        totalPages={agentsTotalPages}
-        totalItems={agentsTotal}
-        onPageChange={setAgentsPage}
-        pageSize={pageSize}
-        onPageSizeChange={setPageSize}
-        isLoading={agentsLoading}
-        error={
-          agentsError && agentsErrorDetail instanceof Error
-            ? agentsErrorDetail.message
-            : agentsError
-              ? 'Failed to load data'
-              : null
-        }
-      />
 
       <CreateAgentCTA />
     </div>

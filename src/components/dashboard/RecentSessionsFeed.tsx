@@ -164,34 +164,28 @@ export function RecentSessionsFeed({
   }
 
   return (
-    <Card className={className}>
+    <Card className={cn('bg-card rounded-lg shadow-md p-6 flex-1', className)}>
       <CardHeader>
         <CardTitle>Recent Sessions</CardTitle>
         <CardDescription>Latest activity</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
+        <div className="space-y-0">
           {sessions.map((session) => (
             <Link
               key={session.id}
               to={`/dashboard/sessions/${session.id}`}
-              className="flex items-center justify-between rounded-lg border border-border p-3 transition-all duration-200 hover:border-primary/50 hover:shadow-card"
+              className="flex justify-between items-center py-2 border-b border-border last:border-b-0 transition-all duration-200 hover:bg-muted"
             >
               <div>
-                <p className="font-medium text-sm">{session.agentName ?? 'Unknown Agent'}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatTimeAgo(session.createdAt)}
+                <p className="font-medium text-sm text-foreground">
+                  {session.agentName ?? 'Unknown Agent'}
                 </p>
+                <span className="text-xs text-muted-foreground">
+                  {formatTimeAgo(session.createdAt)}
+                </span>
               </div>
-              <span
-                className={cn(
-                  'rounded-full px-2 py-0.5 text-xs font-medium',
-                  session.status === 'completed' &&
-                    'bg-success/20 text-success',
-                  session.status === 'active' && 'bg-primary/20 text-primary',
-                  session.status === 'abandoned' && 'bg-muted text-muted-foreground'
-                )}
-              >
+              <span className="text-primary text-sm font-medium capitalize">
                 {session.status}
               </span>
             </Link>

@@ -62,16 +62,18 @@ export function TopNavbar({
             placeholder="Search agents, sessions..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9 bg-card border-border text-foreground placeholder:text-muted-foreground"
+            className="pl-9 bg-card text-muted-foreground rounded-full px-4 py-2 border-0 placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary"
             aria-label="Search agents and sessions"
           />
         </div>
-        <Button asChild className="shrink-0" aria-label="Create new agent">
-          <Link to="/dashboard/agents/new" className="inline-flex items-center gap-2">
-            <Plus className={ICON_SIZE} aria-hidden />
-            <span className="hidden sm:inline">Create Agent</span>
-          </Link>
-        </Button>
+        <Link
+          to="/dashboard/agents/new"
+          className="shrink-0 inline-flex items-center gap-2 bg-primary text-primary-foreground font-medium rounded-full px-4 py-2 transition-all duration-200 hover:bg-secondary-accent"
+          aria-label="Create new agent"
+        >
+          <Plus className={ICON_SIZE} aria-hidden />
+          <span className="hidden sm:inline">Create Agent</span>
+        </Link>
       </div>
       <div className="shrink-0">
         {isLoading ? (
@@ -86,7 +88,7 @@ export function TopNavbar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full"
+                className="rounded-full bg-card text-muted-foreground hover:bg-muted"
                 aria-label="Open user account menu"
                 aria-haspopup="menu"
               >
