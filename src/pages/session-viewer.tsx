@@ -366,7 +366,11 @@ export function SessionViewerPage() {
           />
 
           {/* Audit Trail Panel */}
-          <AuditTrailPanel logs={auditLogs} onRetry={() => refetch()} />
+          <AuditTrailPanel
+            logs={auditLogs}
+            onRetry={() => refetch()}
+            onRefresh={() => refetch()}
+          />
 
           {/* Related Sessions / Visitor Info Panel */}
           <RelatedSessionsPanel
