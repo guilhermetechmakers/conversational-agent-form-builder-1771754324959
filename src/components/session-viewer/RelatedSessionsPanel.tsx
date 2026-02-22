@@ -1,5 +1,7 @@
-import { User, Globe, Monitor } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { User, Globe, Monitor, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 export interface VisitorInfo {
   ip?: string
@@ -8,14 +10,28 @@ export interface VisitorInfo {
   sessionCount?: number
 }
 
+export interface EmptyStateCta {
+  label: string
+  to?: string
+  onClick?: () => void
+}
+
+const DEFAULT_EMPTY_CTA: EmptyStateCta = {
+  label: 'View all sessions',
+  to: '/dashboard/sessions',
+}
+
 export interface RelatedSessionsPanelProps {
   visitorInfo?: VisitorInfo
   relatedSessionIds?: string[]
+  /** Optional CTA for empty state (e.g. view sessions, refresh) */
+  emptyStateCta?: EmptyStateCta
 }
 
 export function RelatedSessionsPanel({
   visitorInfo,
   relatedSessionIds = [],
+  emptyStateCta = DEFAULT_EMPTY_CTA,
 }: RelatedSessionsPanelProps) {
   const hasVisitorInfo =
     visitorInfo &&
@@ -32,7 +48,7 @@ export function RelatedSessionsPanel({
         </CardHeader>
         <CardContent>
           <div
-            className="flex flex-col items-center justify-center min-h-[12rem] py-8 text-center"
+            className="flex flex-col items-center justify-center min-h-[12rem] py-8 px-4 text-center rounded-lg border border-dashed border-border bg-muted/30"
             role="status"
             aria-label="No visitor data"
           >
@@ -41,8 +57,35 @@ export function RelatedSessionsPanel({
               No visitor data
             </p>
             <p className="text-sm text-muted-foreground mt-2 max-w-xs">
-              Visitor metadata will appear when available
+              Visitor metadata will appear when available. Check back later or
+              browse other sessions.
             </p>
+            {emptyStateCta.to ? (
+              <Button asChild className="mt-6" size="default" variant="secondary">
+                <Link to={emptyStateCta.to} className="gap-2">
+                  <Users className="h-4 w-4" aria-hidden />
+                  {emptyStateCta.label}
+                </Link>
+              </Button>
+            ) : emptyStateCta.onClick ? (
+              <Button
+                className="mt-6 gap-2"
+                size="default"
+                variant="secondary"
+                onClick={emptyStateCta.onClick}
+                aria-label={emptyStateCta.label}
+              >
+                <Users className="h-4 w-4" aria-hidden />
+                {emptyStateCta.label}
+              </Button>
+            ) : (
+              <Button asChild className="mt-6" size="default" variant="secondary">
+                <Link to="/dashboard/sessions" className="gap-2">
+                  <Users className="h-4 w-4" aria-hidden />
+                  {emptyStateCta.label}
+                </Link>
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
