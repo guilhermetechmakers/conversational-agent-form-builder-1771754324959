@@ -66,8 +66,7 @@ export default {
         card: '0 2px 8px rgba(0, 0, 0, 0.2)',
         'card-hover': '0 4px 16px rgba(38, 198, 255, 0.15)',
         glow: '0 0 20px rgba(38, 198, 255, 0.3)',
-        dropdown:
-          '0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -4px rgba(0, 0, 0, 0.2)',
+        dropdown: 'var(--shadow-dropdown)',
       },
       keyframes: {
         'fade-in': {

@@ -16,7 +16,7 @@ const DropdownMenuSub = DropdownMenuPrimitive.Sub
 const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
 
 /* Icon size constant for consistent Lucide icon sizing across dropdown */
-const DROPDOWN_ICON_SIZE = 'h-4 w-4'
+const DROPDOWN_ICON_SIZE = 'size-4'
 
 const DropdownMenuSubTrigger = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubTrigger>,
@@ -113,7 +113,12 @@ const DropdownMenuCheckboxItem = React.forwardRef<
     checked={checked}
     {...props}
   >
-    <span className="absolute left-2 flex h-4 w-4 items-center justify-center">
+    <span
+      className={cn(
+        'absolute left-2 flex items-center justify-center',
+        DROPDOWN_ICON_SIZE
+      )}
+    >
       <DropdownMenuPrimitive.ItemIndicator>
         <Check className={cn(DROPDOWN_ICON_SIZE, 'text-primary')} />
       </DropdownMenuPrimitive.ItemIndicator>
@@ -138,7 +143,12 @@ const DropdownMenuRadioItem = React.forwardRef<
     )}
     {...props}
   >
-    <span className="absolute left-2 flex h-4 w-4 items-center justify-center">
+    <span
+      className={cn(
+        'absolute left-2 flex items-center justify-center',
+        DROPDOWN_ICON_SIZE
+      )}
+    >
       <DropdownMenuPrimitive.ItemIndicator>
         <Circle className={cn(DROPDOWN_ICON_SIZE, 'fill-current text-primary')} />
       </DropdownMenuPrimitive.ItemIndicator>
