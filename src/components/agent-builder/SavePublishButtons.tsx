@@ -48,7 +48,7 @@ export function SavePublishButtons({
         <Button
           onClick={onPublish}
           disabled={isBusy || !canPublish || hasErrors}
-          className="transition-all duration-200 hover:scale-[1.02]"
+          className="transition-all duration-200 hover:scale-[1.02] hover:shadow-glow bg-gradient-to-r from-primary to-[rgb(var(--secondary-accent))]"
         >
           {isPublishing ? (
             <Loader2 className="h-4 w-4 animate-spin" />

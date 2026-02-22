@@ -260,7 +260,7 @@ export function FieldsEditor({ fields, onFieldsChange, onAddField }: FieldsEdito
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle className="flex items-center gap-2">
@@ -286,13 +286,15 @@ export function FieldsEditor({ fields, onFieldsChange, onAddField }: FieldsEdito
           >
             <div className="space-y-4">
               {fields.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-border p-8 text-center">
-                  <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="font-medium text-muted-foreground">No fields yet</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Add fields to collect information conversationally
+                <div className="rounded-xl border-2 border-dashed border-border p-12 text-center animate-fade-in">
+                  <div className="rounded-full bg-primary/10 p-4 w-fit mx-auto mb-4">
+                    <MessageSquare className="h-12 w-12 text-primary" />
+                  </div>
+                  <p className="font-semibold text-lg">No fields yet</p>
+                  <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+                    Add fields to collect information conversationally. Drag to reorder once added.
                   </p>
-                  <Button variant="outline" className="mt-4" onClick={onAddField}>
+                  <Button variant="default" className="mt-6 transition-all duration-200 hover:scale-[1.02]" onClick={onAddField}>
                     <Plus className="h-4 w-4" />
                     Add first field
                   </Button>

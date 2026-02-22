@@ -25,7 +25,7 @@ export function AppearanceSettings({
   onThemeChange,
 }: AppearanceSettingsProps) {
   return (
-    <Card>
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Palette className="h-5 w-5" />

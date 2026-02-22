@@ -1,7 +1,10 @@
-import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { MessageSquare, Palette, FileText, Shield } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { Link, useParams, useNavigate } from 'react-router-dom'
+import { MessageSquare, Palette, FileText, Shield, ChevronRight, AlertCircle } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import {
   AgentMetadata,
@@ -13,6 +16,7 @@ import {
   PreviewPane,
   SavePublishButtons,
 } from '@/components/agent-builder'
+import { useAgent, useSaveAgent, usePublishAgent } from '@/hooks/useAgent'
 import type { AgentField } from '@/types'
 
 const defaultField = (): AgentField => ({
@@ -23,21 +27,64 @@ const defaultField = (): AgentField => ({
   placeholder: '',
 })
 
+function AgentBuilderSkeleton() {
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-96 rounded-xl" />
+        </div>
+        <div className="lg:col-span-1">
+          <Skeleton className="h-[500px] rounded-xl" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AgentBuilderError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <Card className="animate-fade-in">
+      <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+        <div className="rounded-full bg-destructive/10 p-4 mb-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
+        </div>
+        <h2 className="text-xl font-semibold mb-2">Failed to load agent</h2>
+        <p className="text-muted-foreground text-center max-w-md mb-6">
+          We couldn&apos;t load this agent. It may have been deleted or you may not have access.
+        </p>
+        <div className="flex gap-3">
+          <Button variant="outline" asChild>
+            <Link to="/dashboard/agents">Back to agents</Link>
+          </Button>
+          <Button onClick={onRetry}>Retry</Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function AgentBuilderPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const isNew = id === 'new'
+  const isNew = id === 'new' || !id
 
-  const [name, setName] = useState(isNew ? '' : 'Lead Capture')
-  const [slug, setSlug] = useState(isNew ? '' : 'lead-capture')
+  const { data: agent, isLoading, isError, refetch } = useAgent(id, !isNew)
+  const saveMutation = useSaveAgent()
+  const publishMutation = usePublishAgent()
+
+  const [name, setName] = useState('')
+  const [slug, setSlug] = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [fields, setFields] = useState<AgentField[]>(
-    isNew ? [defaultField()] : [
-      { id: '1', type: 'text', label: 'Full name', required: true, placeholder: 'John Doe' },
-      { id: '2', type: 'email', label: 'Email', required: true, placeholder: 'john@example.com' },
-    ]
-  )
+  const [fields, setFields] = useState<AgentField[]>(() => (isNew ? [defaultField()] : []))
   const [tone, setTone] = useState('friendly')
   const [systemInstructions, setSystemInstructions] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>()
@@ -53,9 +100,37 @@ export function AgentBuilderPage() {
   const [rateLimit, setRateLimit] = useState(60)
   const [retentionDays, setRetentionDays] = useState(30)
   const [status, setStatus] = useState<'draft' | 'published'>('draft')
-  const [isSaving, setIsSaving] = useState(false)
-  const [isPublishing, setIsPublishing] = useState(false)
-  const [isIndexing, setIsIndexing] = useState(false)
+
+  const hydrateFromAgent = useCallback(() => {
+    if (!agent) return
+    setName(agent.name)
+    setSlug(agent.slug)
+    setDescription(agent.description ?? '')
+    setTags(agent.tags ?? [])
+    setFields(agent.fields?.length ? agent.fields : [defaultField()])
+    setTone(agent.persona?.tone ?? 'friendly')
+    setSystemInstructions(agent.persona?.systemInstructions ?? '')
+    setAvatarUrl(agent.persona?.avatarUrl)
+    setPrimaryColor(agent.appearance?.primaryColor ?? '#26C6FF')
+    setAccentColor(agent.appearance?.accentColor ?? '#00FF66')
+    setTheme(agent.appearance?.theme ?? 'dark')
+    setFaq(agent.context?.faq ?? '')
+    setContextFiles(agent.context?.files ?? [])
+    setContextUrls(agent.context?.urls ?? [])
+    setWebhookUrls(agent.advanced?.webhookUrls ?? [])
+    setPasscodeEnabled(!!agent.advanced?.passcode)
+    setPasscode(agent.advanced?.passcode ?? '')
+    setRateLimit(agent.advanced?.rateLimit ?? 60)
+    setRetentionDays(agent.advanced?.retentionDays ?? 30)
+    setStatus(agent.status)
+  }, [agent])
+
+  useEffect(() => {
+    if (agent && !isNew) {
+      hydrateFromAgent()
+    }
+  }, [agent, isNew, hydrateFromAgent])
+
 
   const addField = () => {
     setFields((f) => [...f, defaultField()])
@@ -72,16 +147,32 @@ export function AgentBuilderPage() {
       toast.error(validationErrors[0])
       return
     }
-    setIsSaving(true)
     try {
-      // API call would go here - supabase.functions.invoke('save-agent', { body: {...} })
-      await new Promise((r) => setTimeout(r, 500))
+      const payload = {
+        name,
+        slug,
+        description,
+        tags,
+        fields,
+        persona: { tone, systemInstructions, avatarUrl },
+        appearance: { primaryColor, accentColor, theme, logoUrl: avatarUrl },
+        context: { faq, files: contextFiles, urls: contextUrls },
+        advanced: {
+          webhookUrls,
+          passcodeEnabled,
+          passcode: passcodeEnabled ? passcode : undefined,
+          rateLimit,
+          retentionDays,
+        },
+      }
+      const saved = await saveMutation.mutateAsync({
+        id: isNew ? null : id ?? null,
+        payload,
+      })
       toast.success('Agent saved')
-      if (isNew) navigate('/dashboard/agents')
+      if (isNew) navigate(`/dashboard/agents/${saved.id}`)
     } catch {
       toast.error('Failed to save agent')
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -90,34 +181,94 @@ export function AgentBuilderPage() {
       toast.error(validationErrors[0] ?? 'Please fix validation errors')
       return
     }
-    setIsPublishing(true)
+    const agentId = isNew ? null : id
+    if (!agentId) {
+      try {
+        const payload = {
+          name,
+          slug,
+          description,
+          tags,
+          fields,
+          persona: { tone, systemInstructions, avatarUrl },
+          appearance: { primaryColor, accentColor, theme, logoUrl: avatarUrl },
+          context: { faq, files: contextFiles, urls: contextUrls },
+          advanced: {
+            webhookUrls,
+            passcodeEnabled,
+            passcode: passcodeEnabled ? passcode : undefined,
+            rateLimit,
+            retentionDays,
+          },
+        }
+        const saved = await saveMutation.mutateAsync({ id: null, payload })
+        await publishMutation.mutateAsync(saved.id)
+        setStatus('published')
+        toast.success('Agent published! Share your public link.')
+        navigate(`/dashboard/agents/${saved.id}`)
+      } catch {
+        toast.error('Failed to publish agent')
+      }
+      return
+    }
     try {
-      // API call would go here - supabase.functions.invoke('publish-agent', { body: {...} })
-      await new Promise((r) => setTimeout(r, 500))
+      await publishMutation.mutateAsync(agentId)
       setStatus('published')
       toast.success('Agent published! Share your public link.')
-      if (isNew) navigate('/dashboard/agents')
     } catch {
       toast.error('Failed to publish agent')
-    } finally {
-      setIsPublishing(false)
     }
   }
 
   const handleIndexKnowledge = async () => {
+    await new Promise((r) => setTimeout(r, 1500))
+    toast.success('Knowledge indexed')
+  }
+
+  const [isIndexing, setIsIndexing] = useState(false)
+  const onIndexKnowledge = async () => {
     setIsIndexing(true)
     try {
-      await new Promise((r) => setTimeout(r, 1500))
-      toast.success('Knowledge indexed')
-    } catch {
-      toast.error('Failed to index knowledge')
+      await handleIndexKnowledge()
     } finally {
       setIsIndexing(false)
     }
   }
 
+  if (!isNew && isLoading) {
+    return <AgentBuilderSkeleton />
+  }
+
+  if (!isNew && isError) {
+    return <AgentBuilderError onRetry={() => refetch()} />
+  }
+
+  const isSaving = saveMutation.isPending
+  const isPublishing = publishMutation.isPending
+
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link
+          to="/dashboard"
+          className="hover:text-foreground transition-colors"
+        >
+          Dashboard
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <Link
+          to="/dashboard/agents"
+          className="hover:text-foreground transition-colors"
+        >
+          Agents
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <span className="text-foreground font-medium">
+          {isNew ? 'Create Agent' : 'Edit Agent'}
+        </span>
+      </nav>
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">
@@ -206,7 +357,7 @@ export function AgentBuilderPage() {
                 onFaqChange={setFaq}
                 onFilesChange={setContextFiles}
                 onUrlsChange={setContextUrls}
-                onIndexKnowledge={handleIndexKnowledge}
+                onIndexKnowledge={onIndexKnowledge}
                 isIndexing={isIndexing}
               />
             </TabsContent>
@@ -242,3 +393,5 @@ export function AgentBuilderPage() {
     </div>
   )
 }
+
+export default AgentBuilderPage

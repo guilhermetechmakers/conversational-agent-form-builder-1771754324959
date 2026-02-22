@@ -79,7 +79,7 @@ export function PreviewPane({
   const isDark = theme === 'dark'
 
   return (
-    <Card className="sticky top-24 overflow-hidden">
+    <Card className="sticky top-24 overflow-hidden transition-all duration-300 hover:shadow-card-hover border-primary/10">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="flex items-center gap-2">
           <Eye className="h-5 w-5" />
