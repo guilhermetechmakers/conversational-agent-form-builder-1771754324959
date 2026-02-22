@@ -64,8 +64,8 @@ export default {
       },
       boxShadow: {
         card: '0 2px 8px rgba(0, 0, 0, 0.2)',
-        'card-hover': '0 4px 16px rgba(38, 198, 255, 0.15)',
-        glow: '0 0 20px rgba(38, 198, 255, 0.3)',
+        'card-hover': 'var(--shadow-card-hover)',
+        glow: 'var(--shadow-glow)',
         dropdown: 'var(--shadow-dropdown)',
         badge: '0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04)',
         input:
@@ -97,8 +97,8 @@ export default {
           '100%': { backgroundPosition: '200% 0' },
         },
         'pulse-glow': {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(38, 198, 255, 0.2)' },
-          '50%': { boxShadow: '0 0 30px rgba(38, 198, 255, 0.4)' },
+          '0%, 100%': { boxShadow: 'var(--shadow-glow-soft)' },
+          '50%': { boxShadow: 'var(--shadow-glow-strong)' },
         },
         shake: {
           '0%, 100%': { transform: 'translateX(0)' },

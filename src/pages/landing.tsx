@@ -1,4 +1,8 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import {
   Bot,
   MessageSquare,
@@ -7,6 +11,9 @@ import {
   ArrowRight,
   Check,
   Sparkles,
+  Mail,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,6 +24,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
+import { subscribeNewsletter } from '@/api/newsletter'
 import { cn } from '@/lib/utils'
 
 const FEATURE_ICON_SIZE = 'h-8 w-8'
@@ -24,7 +34,39 @@ const PLAN_ICON_SIZE = 'h-5 w-5'
 const CHECK_ICON_SIZE = 'h-4 w-4'
 const BRAND_ICON_SIZE = 'h-8 w-8'
 
+const newsletterSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
+})
+
+type NewsletterFormData = z.infer<typeof newsletterSchema>
+
 export function LandingPage() {
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<NewsletterFormData>({
+    resolver: zodResolver(newsletterSchema),
+  })
+
+  const onNewsletterSubmit = async (data: NewsletterFormData) => {
+    setApiError(null)
+    try {
+      await subscribeNewsletter(data.email)
+      setIsSubscribed(true)
+      toast.success('You\'re on the list! We\'ll be in touch.')
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as { message: string }).message)
+          : 'Something went wrong. Please try again.'
+      setApiError(msg)
+      toast.error(msg)
+    }
+  }
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       {/* Animated gradient background */}
@@ -327,6 +369,89 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Newsletter signup */}
+      <section
+        className="px-4 py-16 md:py-20 md:px-8 lg:px-12"
+        aria-labelledby="newsletter-heading"
+      >
+        <Card className="max-w-xl mx-auto p-6 md:p-8 animate-fade-in border-primary/20 bg-card/50">
+          <CardHeader className="p-0 pb-6">
+            <CardTitle id="newsletter-heading" className="text-xl md:text-2xl">
+              Get early access to new features
+            </CardTitle>
+            <CardDescription>
+              Join our newsletter for product updates and tips on building better agents.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            {isSubscribed ? (
+              <div
+                className="flex items-center gap-3 rounded-lg border border-success/30 bg-success/10 px-4 py-4 text-success"
+                role="status"
+                aria-live="polite"
+              >
+                <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
+                <p className="text-sm font-medium">
+                  Thanks for subscribing! We&apos;ll keep you updated.
+                </p>
+              </div>
+            ) : (
+              <form
+                onSubmit={handleSubmit(onNewsletterSubmit)}
+                className="flex flex-col sm:flex-row gap-3"
+                noValidate
+              >
+                <div className="flex-1 min-w-0">
+                  <Input
+                    id="newsletter-email"
+                    type="email"
+                    label={<span className="sr-only">Email address</span>}
+                    placeholder="you@company.com"
+                    autoComplete="email"
+                    className="h-11"
+                    error={!!errors.email}
+                    errorMessage={errors.email?.message}
+                    isLoading={isSubmitting}
+                    leftIcon={<Mail className="h-4 w-4" />}
+                    aria-label="Email address for newsletter signup"
+                    aria-invalid={!!errors.email}
+                    aria-describedby={apiError ? 'newsletter-api-error' : undefined}
+                    disabled={isSubmitting}
+                    {...register('email')}
+                  />
+                  {apiError && (
+                    <p
+                      id="newsletter-api-error"
+                      className="mt-2 text-sm text-destructive animate-fade-in"
+                      role="alert"
+                    >
+                      {apiError}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="h-11 px-6 shrink-0"
+                  disabled={isSubmitting}
+                  aria-busy={isSubmitting}
+                  aria-label={isSubmitting ? 'Subscribing...' : 'Subscribe to newsletter'}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      Subscribing...
+                    </>
+                  ) : (
+                    'Subscribe'
+                  )}
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      </section>
+
       {/* CTA */}
       <section
         className="px-4 py-16 md:py-24 md:px-8 lg:px-12"
@@ -390,18 +515,21 @@ export function LandingPage() {
             <Link
               to="/docs"
               className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
+              aria-label="View documentation"
             >
               Docs
             </Link>
             <Link
               to="/privacy"
               className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
+              aria-label="View privacy policy"
             >
               Privacy
             </Link>
             <Link
               to="/terms"
               className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
+              aria-label="View terms of service"
             >
               Terms
             </Link>
