@@ -13,7 +13,9 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => void>(
   const lastArgsRef = useRef<Parameters<T>>()
   const lastThisRef = useRef<unknown>()
 
-  callbackRef.current = callback
+  useEffect(() => {
+    callbackRef.current = callback
+  })
 
   const debounced = useCallback(
     (...args: Parameters<T>) => {

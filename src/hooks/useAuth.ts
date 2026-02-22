@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { AuthContext } from '@/components/AuthProvider'
+import { AuthContext } from '@/contexts/auth-context'
 import { hasRoleOrAbove, hasPermission } from '@/constants/rbac'
 import type { AuthRole } from '@/types/auth'
 

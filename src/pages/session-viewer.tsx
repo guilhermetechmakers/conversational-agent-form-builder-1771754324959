@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -24,6 +24,7 @@ import {
   AuditTrailPanel,
   RelatedSessionsPanel,
 } from '@/components/session-viewer'
+import type { UseMutationResult } from '@tanstack/react-query'
 import { useSession, useMarkSessionReviewed, useResendSessionWebhook } from '@/hooks/useSession'
 import type { Session, AuditLogEntry } from '@/types'
 import { cn } from '@/lib/utils'
@@ -92,9 +93,30 @@ const MOCK_AUDIT_LOGS: AuditLogEntry[] = [
   },
 ]
 
-export function SessionViewerPage() {
-  const { id } = useParams<{ id: string }>()
-  const [localNotes, setLocalNotes] = useState('')
+interface SessionViewerContentProps {
+  displaySession: Session
+  id: string
+  isRefetching: boolean
+  auditLogs: AuditLogEntry[]
+  refetch: () => void
+  markReviewed: UseMutationResult<void, Error, { sessionId: string; notes?: string }>
+  resendWebhook: UseMutationResult<
+    { success: boolean; sent: number; failed: number },
+    Error,
+    string
+  >
+}
+
+function SessionViewerContent({
+  displaySession,
+  id,
+  isRefetching,
+  auditLogs,
+  refetch,
+  markReviewed,
+  resendWebhook,
+}: SessionViewerContentProps) {
+  const [localNotes, setLocalNotes] = useState(displaySession.notes ?? '')
   const [assignOwnerOpen, setAssignOwnerOpen] = useState(false)
   const [addNotesOpen, setAddNotesOpen] = useState(false)
 
@@ -103,32 +125,7 @@ export function SessionViewerPage() {
     defaultValues: { email: '' },
   })
 
-  const {
-    data: session,
-    isLoading,
-    isError,
-    error,
-    refetch,
-    isRefetching,
-  } = useSession(id, !!id)
-
-  const markReviewed = useMarkSessionReviewed()
-  const resendWebhook = useResendSessionWebhook()
-
-  const displaySession =
-    session ??
-    (isError && (error as { status?: number })?.status === 404 ? MOCK_SESSION : null)
-
-  const auditLogs = displaySession ? MOCK_AUDIT_LOGS : []
-
-  useEffect(() => {
-    if (displaySession?.notes !== undefined) {
-      setLocalNotes(displaySession.notes ?? '')
-    }
-  }, [displaySession?.id, displaySession?.notes])
-
   const handleCopyTranscript = useCallback(() => {
-    if (!displaySession) return
     const text = displaySession.messages
       .map((m) => `${m.sender}: ${m.content}`)
       .join('\n')
@@ -142,7 +139,6 @@ export function SessionViewerPage() {
   }, [])
 
   const handleExportJson = useCallback(() => {
-    if (!displaySession) return
     const blob = new Blob([JSON.stringify(displaySession, null, 2)], {
       type: 'application/json',
     })
@@ -156,7 +152,6 @@ export function SessionViewerPage() {
   }, [displaySession, id])
 
   const handleExportCsv = useCallback(() => {
-    if (!displaySession) return
     const headers = displaySession.capturedFields.map((f) => f.fieldId).join(',')
     const row = displaySession.capturedFields
       .map((f) => `"${String(f.validatedValue ?? '').replace(/"/g, '""')}"`)
@@ -173,7 +168,6 @@ export function SessionViewerPage() {
   }, [displaySession, id])
 
   const handleResendWebhook = useCallback(() => {
-    if (!id) return
     resendWebhook.mutate(id, {
       onSuccess: (result) => {
         if (result.success) {
@@ -189,7 +183,6 @@ export function SessionViewerPage() {
   }, [id, resendWebhook])
 
   const handleMarkReviewed = useCallback(() => {
-    if (!id || !displaySession) return
     const notesToSend = localNotes || displaySession.notes || undefined
     markReviewed.mutate(
       { sessionId: id, notes: notesToSend },
@@ -199,7 +192,7 @@ export function SessionViewerPage() {
           toast.error(err?.message ?? 'Failed to mark as reviewed'),
       }
     )
-  }, [id, localNotes, displaySession?.notes, markReviewed])
+  }, [id, localNotes, displaySession, markReviewed])
 
   const handleAssignOwner = (data: AssignOwnerFormData) => {
     toast.success(`Assigned to ${data.email}`)
@@ -211,64 +204,6 @@ export function SessionViewerPage() {
     setAddNotesOpen(false)
     toast.success('Notes updated')
   }, [])
-
-  if (isLoading && !displaySession) {
-    return <SessionViewerSkeleton />
-  }
-
-  if (isError && !displaySession) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-background text-foreground -m-4 md:-m-6 p-8">
-        <div className="rounded-xl border border-border bg-card p-8 max-w-md text-center">
-          <AlertCircle className="h-12 w-12 text-notification mx-auto mb-4" aria-hidden />
-          <h2 className="text-lg font-semibold mb-2">Failed to load session</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            {(error as { message?: string })?.message ??
-              'An error occurred while loading this session.'}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              variant="outline"
-              onClick={() => refetch()}
-              className="gap-2"
-              aria-label="Retry loading session"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Retry
-            </Button>
-            <Button asChild>
-              <Link
-                to="/dashboard/sessions"
-                aria-label="Back to sessions list"
-              >
-                Back to sessions
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!displaySession) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-background text-foreground -m-4 md:-m-6 p-8">
-        <div className="rounded-xl border border-border bg-card p-8 max-w-md text-center">
-          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden />
-          <h2 className="text-lg font-semibold mt-4">Session not found</h2>
-          <p className="text-sm text-muted-foreground mt-2">
-            The session you're looking for doesn't exist or you don't have
-            access to it.
-          </p>
-          <Button asChild className="mt-4" aria-label="Back to sessions list">
-            <Link to="/dashboard/sessions">
-              Back to sessions
-            </Link>
-          </Button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-8rem)] bg-background text-foreground -m-4 md:-m-6 overflow-hidden">
@@ -498,5 +433,97 @@ export function SessionViewerPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export function SessionViewerPage() {
+  const { id } = useParams<{ id: string }>()
+  const {
+    data: session,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isRefetching,
+  } = useSession(id, !!id)
+
+  const markReviewed = useMarkSessionReviewed()
+  const resendWebhook = useResendSessionWebhook()
+
+  const displaySession =
+    session ??
+    (isError && (error as { status?: number })?.status === 404 ? MOCK_SESSION : null)
+
+  const auditLogs = displaySession ? MOCK_AUDIT_LOGS : []
+
+  if (isLoading && !displaySession) {
+    return <SessionViewerSkeleton />
+  }
+
+  if (isError && !displaySession) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-background text-foreground -m-4 md:-m-6 p-8">
+        <div className="rounded-xl border border-border bg-card p-8 max-w-md text-center">
+          <AlertCircle className="h-12 w-12 text-notification mx-auto mb-4" aria-hidden />
+          <h2 className="text-lg font-semibold mb-2">Failed to load session</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            {(error as { message?: string })?.message ??
+              'An error occurred while loading this session.'}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              className="gap-2"
+              aria-label="Retry loading session"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Retry
+            </Button>
+            <Button asChild>
+              <Link
+                to="/dashboard/sessions"
+                aria-label="Back to sessions list"
+              >
+                Back to sessions
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!displaySession) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-background text-foreground -m-4 md:-m-6 p-8">
+        <div className="rounded-xl border border-border bg-card p-8 max-w-md text-center">
+          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden />
+          <h2 className="text-lg font-semibold mt-4">Session not found</h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            The session you're looking for doesn't exist or you don't have
+            access to it.
+          </p>
+          <Button asChild className="mt-4" aria-label="Back to sessions list">
+            <Link to="/dashboard/sessions">
+              Back to sessions
+            </Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <SessionViewerContent
+      key={displaySession.id}
+      displaySession={displaySession}
+      id={id!}
+      isRefetching={isRefetching}
+      auditLogs={auditLogs}
+      refetch={refetch}
+      markReviewed={markReviewed}
+      resendWebhook={resendWebhook}
+    />
   )
 }

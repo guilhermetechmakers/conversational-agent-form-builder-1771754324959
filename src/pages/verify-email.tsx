@@ -14,19 +14,22 @@ import { useAuth } from '@/hooks/useAuth'
 import { Loader2, AlertCircle, CheckCircle2, LogIn, UserPlus, LayoutDashboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+const NO_TOKEN_MESSAGE =
+  'No verification token was provided. Please use the link from your verification email.'
+
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') ?? ''
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
-  const [errorMessage, setErrorMessage] = useState<string>('')
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(() =>
+    !token ? 'error' : 'loading'
+  )
+  const [errorMessage, setErrorMessage] = useState<string>(() =>
+    !token ? NO_TOKEN_MESSAGE : ''
+  )
   const { setSession } = useAuth()
 
   useEffect(() => {
-    if (!token) {
-      setStatus('error')
-      setErrorMessage('No verification token was provided. Please use the link from your verification email.')
-      return
-    }
+    if (!token) return
 
     let cancelled = false
     verifyEmail(token)
