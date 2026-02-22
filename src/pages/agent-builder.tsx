@@ -15,7 +15,6 @@ import { DESIGN_TOKENS } from '@/lib/design-tokens'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import {
   AgentMetadata,
@@ -49,36 +48,6 @@ const BUILDER_SECTIONS = [
   { id: 'advanced', icon: Shield, label: 'Advanced' },
   { id: 'preview', icon: Eye, label: 'Preview' },
 ]
-
-function AgentBuilderSkeleton() {
-  return (
-    <div className="flex flex-col md:flex-row bg-primary-900 text-white min-h-[calc(100vh-8rem)] animate-pulse">
-      <aside className="hidden md:flex flex-col w-16 bg-primary-800 items-center py-4 shrink-0">
-        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <Skeleton key={i} className="w-10 h-10 rounded-lg mb-4 bg-primary-700" />
-        ))}
-      </aside>
-      <div className="flex-1 flex flex-col p-6 space-y-6">
-        <div className="flex justify-between items-center py-4 px-6 border-b border-divider">
-          <Skeleton className="h-6 w-48 bg-primary-700 rounded" />
-          <div className="flex gap-2">
-            <Skeleton className="h-10 w-24 bg-primary-700 rounded" />
-            <Skeleton className="h-10 w-24 bg-primary-700 rounded" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="bg-primary-800 h-48 w-full rounded-lg shadow-md" />
-          <Skeleton className="bg-primary-800 h-48 w-full rounded-lg shadow-md" />
-        </div>
-        <div className="space-y-4">
-          <Skeleton className="bg-primary-700 h-6 w-3/4 rounded mt-4" />
-          <Skeleton className="bg-primary-700 h-6 w-1/2 rounded" />
-          <Skeleton className="bg-primary-800 h-64 w-full rounded-lg" />
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function AgentBuilderError({ onRetry }: { onRetry: () => void }) {
   return (
@@ -340,10 +309,6 @@ export function AgentBuilderPage() {
     }
   }
 
-  if (!isNew && isLoading) {
-    return <AgentBuilderSkeleton />
-  }
-
   if (!isNew && isError) {
     return <AgentBuilderError onRetry={() => refetch()} />
   }
@@ -435,6 +400,7 @@ export function AgentBuilderPage() {
               onFieldsChange={setFields}
               onAddField={addField}
               fieldError={fieldErrors.fields}
+              isLoading={!isNew && isLoading}
             />
 
             <Tabs
