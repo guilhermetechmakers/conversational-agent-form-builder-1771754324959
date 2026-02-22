@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import {
   MessageSquare,
@@ -10,11 +10,22 @@ import {
   Settings,
   List,
   Eye,
+  Trash2,
 } from 'lucide-react'
 import { DESIGN_TOKENS } from '@/lib/design-tokens'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import {
   AgentMetadata,
@@ -26,7 +37,7 @@ import {
   PreviewPane,
   SavePublishButtons,
 } from '@/components/agent-builder'
-import { useAgent, useSaveAgent, usePublishAgent } from '@/hooks/useAgent'
+import { useAgent, useSaveAgent, usePublishAgent, useDeleteAgent } from '@/hooks/useAgent'
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
 import type { AgentField } from '@/types'
 import { cn } from '@/lib/utils'
@@ -89,6 +100,11 @@ export function AgentBuilderPage() {
   const { data: agent, isLoading, isError, refetch } = useAgent(id, !isNew)
   const saveMutation = useSaveAgent()
   const publishMutation = usePublishAgent()
+  const deleteMutation = useDeleteAgent()
+
+  const metadataRef = useRef<HTMLDivElement>(null)
+  const fieldsRef = useRef<HTMLDivElement>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
@@ -246,8 +262,17 @@ export function AgentBuilderPage() {
     fields: fields.length === 0 ? 'At least one field is required' : undefined,
   }
 
+  const scrollToFirstError = useCallback(() => {
+    if (fieldErrors.name || fieldErrors.slug) {
+      metadataRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } else if (fieldErrors.fields) {
+      fieldsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [fieldErrors.name, fieldErrors.slug, fieldErrors.fields])
+
   const handleSave = async () => {
     if (validationErrors.length > 0) {
+      scrollToFirstError()
       toast.error(validationErrors[0])
       return
     }
@@ -268,6 +293,7 @@ export function AgentBuilderPage() {
 
   const handlePublish = async () => {
     if (!canPublish || validationErrors.length > 0) {
+      scrollToFirstError()
       toast.error(validationErrors[0] ?? 'Please fix validation errors')
       return
     }
@@ -309,6 +335,19 @@ export function AgentBuilderPage() {
     }
   }
 
+  const handleDeleteAgent = async () => {
+    if (!id || isNew) return
+    try {
+      await deleteMutation.mutateAsync(id)
+      toast.success('Agent deleted')
+      navigate('/dashboard/agents')
+    } catch {
+      toast.error('Failed to delete agent')
+    } finally {
+      setShowDeleteDialog(false)
+    }
+  }
+
   if (!isNew && isError) {
     return <AgentBuilderError onRetry={() => refetch()} />
   }
@@ -319,7 +358,10 @@ export function AgentBuilderPage() {
   return (
     <div className="flex flex-col md:flex-row bg-primary-900 text-white min-h-[calc(100vh-8rem)]">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-16 bg-primary-800 items-center py-4 shrink-0 border-r border-divider">
+      <aside
+        className="hidden md:flex flex-col w-16 bg-primary-800 items-center py-4 shrink-0 border-r border-divider"
+        aria-label="Builder section navigation"
+      >
         {BUILDER_SECTIONS.map(({ id, icon: Icon, label }) => (
           <button
             key={id}
@@ -340,11 +382,12 @@ export function AgentBuilderPage() {
       {/* Content Area */}
       <div className="flex-1 flex flex-col p-6 space-y-6 min-w-0">
         {/* Top Navigation Bar */}
-        <div className="flex justify-between items-center py-4 px-6 border-b border-divider -mx-6 -mt-6 mb-0">
-          <h1 className="text-xl font-semibold">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 px-6 border-b border-divider -mx-6 -mt-6 mb-0">
+          <h1 id="agent-builder-title" className="text-xl font-semibold">
             {isNew ? 'Create Agent' : 'Edit Agent'}
           </h1>
-          <SavePublishButtons
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <SavePublishButtons
             status={status}
             isSaving={isSaving}
             isPublishing={isPublishing}
@@ -353,6 +396,44 @@ export function AgentBuilderPage() {
             validationErrors={validationErrors}
             canPublish={canPublish}
           />
+            {!isNew && id && (
+              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="min-h-9"
+                  aria-label="Delete agent"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden />
+                  Delete
+                </Button>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this agent?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete the agent &quot;{name || 'Untitled'}&quot; and all its data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel aria-label="Cancel delete">Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleDeleteAgent()
+                      }}
+                      className="bg-destructive text-white hover:bg-destructive/90"
+                      aria-label="Confirm delete agent"
+                      disabled={deleteMutation.isPending}
+                    >
+                      {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
 
         {/* Breadcrumbs */}
@@ -363,6 +444,7 @@ export function AgentBuilderPage() {
           <Link
             to="/dashboard"
             className="hover:text-accent-500 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-500 rounded"
+            aria-label="Navigate to dashboard"
           >
             Dashboard
           </Link>
@@ -370,6 +452,7 @@ export function AgentBuilderPage() {
           <Link
             to="/dashboard/agents"
             className="hover:text-accent-500 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-500 rounded"
+            aria-label="Navigate to agents list"
           >
             Agents
           </Link>
@@ -379,10 +462,30 @@ export function AgentBuilderPage() {
           </span>
         </nav>
 
+        {/* Validation errors banner - inline feedback */}
+        {validationErrors.length > 0 && (
+          <div
+            role="alert"
+            className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive animate-fade-in"
+            aria-live="polite"
+          >
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" aria-hidden />
+            <div className="flex-1 min-w-0">
+              <p className="font-medium">Please fix the following before saving:</p>
+              <ul className="mt-2 list-disc list-inside space-y-1">
+                {validationErrors.map((err, i) => (
+                  <li key={i}>{err}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
         {/* Main Content - Grid */}
         <div className="flex flex-col space-y-6 md:grid md:grid-cols-2 md:gap-6">
           <div className="space-y-6">
-            <AgentMetadata
+            <div ref={metadataRef}>
+              <AgentMetadata
               name={name}
               slug={slug}
               description={description}
@@ -394,7 +497,9 @@ export function AgentBuilderPage() {
               isNew={isNew}
               errors={fieldErrors}
             />
+            </div>
 
+            <div ref={fieldsRef}>
             <FieldsEditor
               fields={fields}
               onFieldsChange={setFields}
@@ -402,6 +507,7 @@ export function AgentBuilderPage() {
               fieldError={fieldErrors.fields}
               isLoading={!isNew && isLoading}
             />
+            </div>
 
             <Tabs
               value={

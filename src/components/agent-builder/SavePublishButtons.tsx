@@ -49,7 +49,7 @@ export function SavePublishButtons({
         <Button
           onClick={onPublish}
           disabled={isBusy || !canPublish || hasErrors}
-          className="bg-green-500 text-white rounded px-4 py-2 hover:bg-green-600 transition duration-150 hover:scale-[1.02]"
+          className="bg-success text-primary-foreground rounded px-4 py-2 hover:bg-success/90 transition duration-150 hover:scale-[1.02]"
           aria-label={
             isPublishing
               ? 'Publishing agent'

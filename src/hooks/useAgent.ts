@@ -3,8 +3,10 @@ import {
   fetchAgent,
   saveAgent,
   publishAgent,
+  deleteAgent,
   type AgentPayload,
 } from '@/api/agents'
+import { dashboardKeys } from '@/hooks/useDashboard'
 
 export const agentKeys = {
   all: ['agents'] as const,
@@ -39,6 +41,17 @@ export function usePublishAgent() {
     onSuccess: (agent) => {
       queryClient.invalidateQueries({ queryKey: agentKeys.all })
       queryClient.setQueryData(agentKeys.detail(agent.id), agent)
+    },
+  })
+}
+
+export function useDeleteAgent() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deleteAgent(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agentKeys.all })
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
     },
   })
 }
