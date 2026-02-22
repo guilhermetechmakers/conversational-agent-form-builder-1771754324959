@@ -6,6 +6,12 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+export interface AgentMetadataErrors {
+  name?: string
+  slug?: string
+}
+
 export interface AgentMetadataProps {
   name: string
   slug: string
@@ -16,6 +22,7 @@ export interface AgentMetadataProps {
   onDescriptionChange: (value: string) => void
   onTagsChange: (tags: string[]) => void
   isNew?: boolean
+  errors?: AgentMetadataErrors
 }
 
 export function AgentMetadata({
@@ -28,6 +35,7 @@ export function AgentMetadata({
   onDescriptionChange,
   onTagsChange,
   isNew = true,
+  errors = {},
 }: AgentMetadataProps) {
   const [tagInput, setTagInput] = useState('')
 
@@ -67,8 +75,22 @@ export function AgentMetadata({
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
             placeholder="My Agent"
-            className="transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+            className={cn(
+              'transition-all duration-200 focus:ring-2 focus:ring-primary/50',
+              errors.name && 'border-destructive focus-visible:ring-destructive'
+            )}
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? 'agent-name-error' : undefined}
           />
+          {errors.name && (
+            <p
+              id="agent-name-error"
+              className="text-sm text-destructive animate-fade-in"
+              role="alert"
+            >
+              {errors.name}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="agent-slug">Slug (public path)</Label>
@@ -77,8 +99,22 @@ export function AgentMetadata({
             value={slug}
             onChange={(e) => onSlugChange(e.target.value)}
             placeholder="my-agent"
-            className="font-mono text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+            className={cn(
+              'font-mono text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/50',
+              errors.slug && 'border-destructive focus-visible:ring-destructive'
+            )}
+            aria-invalid={!!errors.slug}
+            aria-describedby={errors.slug ? 'agent-slug-error' : undefined}
           />
+          {errors.slug && (
+            <p
+              id="agent-slug-error"
+              className="text-sm text-destructive animate-fade-in"
+              role="alert"
+            >
+              {errors.slug}
+            </p>
+          )}
           <p className="text-xs text-muted-foreground">
             Public URL: /chat/{slug || 'your-slug'}
           </p>
@@ -111,6 +147,7 @@ export function AgentMetadata({
               size="sm"
               onClick={addTag}
               disabled={!tagInput.trim()}
+              aria-label="Add tag"
             >
               Add
             </Button>

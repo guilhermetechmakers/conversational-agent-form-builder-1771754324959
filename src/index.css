@@ -27,6 +27,13 @@
     --success: 0 255 102; /* #00FF66 */
     --notification: 255 214 0; /* #FFD600 */
     --overlay: 35 38 43 0.8; /* #23262BCC */
+    /* Preview pane theme colors */
+    --preview-bg-dark: 26 27 36; /* #1a1d24 */
+    --preview-bg-light: 248 250 252; /* #f8fafc */
+    --preview-fg-dark: 255 255 255;
+    --preview-fg-light: 15 23 42; /* #0f172a slate-900 */
+    --preview-border-dark: 255, 255, 255, 0.1;
+    --preview-border-light: 0, 0, 0, 0.08;
   }
 
   * {

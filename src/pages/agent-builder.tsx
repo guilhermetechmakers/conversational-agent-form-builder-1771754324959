@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { MessageSquare, Palette, FileText, Shield, ChevronRight, AlertCircle } from 'lucide-react'
+import { DESIGN_TOKENS } from '@/lib/design-tokens'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -51,9 +52,9 @@ function AgentBuilderSkeleton() {
 
 function AgentBuilderError({ onRetry }: { onRetry: () => void }) {
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in" role="alert">
       <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-        <div className="rounded-full bg-destructive/10 p-4 mb-4">
+        <div className="rounded-full bg-destructive/10 p-4 mb-4" aria-hidden>
           <AlertCircle className="h-12 w-12 text-destructive" />
         </div>
         <h2 className="text-xl font-semibold mb-2">Failed to load agent</h2>
@@ -64,7 +65,9 @@ function AgentBuilderError({ onRetry }: { onRetry: () => void }) {
           <Button variant="outline" asChild>
             <Link to="/dashboard/agents">Back to agents</Link>
           </Button>
-          <Button onClick={onRetry}>Retry</Button>
+          <Button onClick={onRetry} aria-label="Retry loading agent">
+            Retry
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -88,8 +91,8 @@ export function AgentBuilderPage() {
   const [tone, setTone] = useState('friendly')
   const [systemInstructions, setSystemInstructions] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>()
-  const [primaryColor, setPrimaryColor] = useState('#26C6FF')
-  const [accentColor, setAccentColor] = useState('#00FF66')
+  const [primaryColor, setPrimaryColor] = useState<string>(DESIGN_TOKENS.primaryHex)
+  const [accentColor, setAccentColor] = useState<string>(DESIGN_TOKENS.secondaryAccentHex)
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   const [faq, setFaq] = useState('')
   const [contextFiles, setContextFiles] = useState<string[]>([])
@@ -111,8 +114,8 @@ export function AgentBuilderPage() {
     setTone(agent.persona?.tone ?? 'friendly')
     setSystemInstructions(agent.persona?.systemInstructions ?? '')
     setAvatarUrl(agent.persona?.avatarUrl)
-    setPrimaryColor(agent.appearance?.primaryColor ?? '#26C6FF')
-    setAccentColor(agent.appearance?.accentColor ?? '#00FF66')
+    setPrimaryColor(agent.appearance?.primaryColor ?? DESIGN_TOKENS.primaryHex)
+    setAccentColor(agent.appearance?.accentColor ?? DESIGN_TOKENS.secondaryAccentHex)
     setTheme(agent.appearance?.theme ?? 'dark')
     setFaq(agent.context?.faq ?? '')
     setContextFiles(agent.context?.files ?? [])
@@ -141,6 +144,12 @@ export function AgentBuilderPage() {
   if (!slug.trim()) validationErrors.push('Slug is required')
   if (fields.length === 0) validationErrors.push('At least one field is required')
   const canPublish = name.trim().length > 0 && slug.trim().length > 0 && fields.length > 0
+
+  const fieldErrors = {
+    name: !name.trim() ? 'Name is required' : undefined,
+    slug: !slug.trim() ? 'Slug is required' : undefined,
+    fields: fields.length === 0 ? 'At least one field is required' : undefined,
+  }
 
   const handleSave = async () => {
     if (validationErrors.length > 0) {
@@ -249,21 +258,24 @@ export function AgentBuilderPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+      <nav
+        className="flex items-center gap-2 text-sm text-muted-foreground"
+        aria-label="Breadcrumb"
+      >
         <Link
           to="/dashboard"
-          className="hover:text-foreground transition-colors"
+          className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
         >
           Dashboard
         </Link>
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
         <Link
           to="/dashboard/agents"
-          className="hover:text-foreground transition-colors"
+          className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
         >
           Agents
         </Link>
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
         <span className="text-foreground font-medium">
           {isNew ? 'Create Agent' : 'Edit Agent'}
         </span>
@@ -301,30 +313,32 @@ export function AgentBuilderPage() {
             onDescriptionChange={setDescription}
             onTagsChange={setTags}
             isNew={isNew}
+            errors={fieldErrors}
           />
 
           <FieldsEditor
             fields={fields}
             onFieldsChange={setFields}
             onAddField={addField}
+            fieldError={fieldErrors.fields}
           />
 
-          <Tabs defaultValue="persona">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="persona" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
+          <Tabs defaultValue="persona" aria-label="Agent configuration tabs">
+            <TabsList className="grid w-full grid-cols-4" role="tablist">
+              <TabsTrigger value="persona" className="flex items-center gap-2" role="tab">
+                <MessageSquare className="h-4 w-4" aria-hidden />
                 Persona
               </TabsTrigger>
-              <TabsTrigger value="appearance" className="flex items-center gap-2">
-                <Palette className="h-4 w-4" />
+              <TabsTrigger value="appearance" className="flex items-center gap-2" role="tab">
+                <Palette className="h-4 w-4" aria-hidden />
                 Appearance
               </TabsTrigger>
-              <TabsTrigger value="context" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+              <TabsTrigger value="context" className="flex items-center gap-2" role="tab">
+                <FileText className="h-4 w-4" aria-hidden />
                 Context
               </TabsTrigger>
-              <TabsTrigger value="advanced" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
+              <TabsTrigger value="advanced" className="flex items-center gap-2" role="tab">
+                <Shield className="h-4 w-4" aria-hidden />
                 Advanced
               </TabsTrigger>
             </TabsList>

@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { cn } from '@/lib/utils'
 import type { AgentField, FieldType } from '@/types'
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
@@ -53,6 +54,7 @@ export interface FieldsEditorProps {
   fields: AgentField[]
   onFieldsChange: (fields: AgentField[]) => void
   onAddField: () => void
+  fieldError?: string
 }
 
 function SortableFieldItem({
@@ -234,7 +236,12 @@ function SortableFieldItem({
   )
 }
 
-export function FieldsEditor({ fields, onFieldsChange, onAddField }: FieldsEditorProps) {
+export function FieldsEditor({
+  fields,
+  onFieldsChange,
+  onAddField,
+  fieldError,
+}: FieldsEditorProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -269,8 +276,13 @@ export function FieldsEditor({ fields, onFieldsChange, onAddField }: FieldsEdito
           </CardTitle>
           <CardDescription>Add, remove, and reorder fields to collect</CardDescription>
         </div>
-        <Button size="sm" variant="outline" onClick={onAddField}>
-          <Plus className="h-4 w-4" />
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onAddField}
+          aria-label="Add form field"
+        >
+          <Plus className="h-4 w-4" aria-hidden />
           Add field
         </Button>
       </CardHeader>
@@ -286,16 +298,33 @@ export function FieldsEditor({ fields, onFieldsChange, onAddField }: FieldsEdito
           >
             <div className="space-y-4">
               {fields.length === 0 ? (
-                <div className="rounded-xl border-2 border-dashed border-border p-12 text-center animate-fade-in">
+                <div
+                  className={cn(
+                    'rounded-xl border-2 border-dashed p-12 text-center animate-fade-in',
+                    fieldError ? 'border-destructive bg-destructive/5' : 'border-border'
+                  )}
+                  role="status"
+                  aria-label="Empty fields state"
+                >
                   <div className="rounded-full bg-primary/10 p-4 w-fit mx-auto mb-4">
-                    <MessageSquare className="h-12 w-12 text-primary" />
+                    <MessageSquare className="h-12 w-12 text-primary" aria-hidden />
                   </div>
                   <p className="font-semibold text-lg">No fields yet</p>
                   <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
                     Add fields to collect information conversationally. Drag to reorder once added.
                   </p>
-                  <Button variant="default" className="mt-6 transition-all duration-200 hover:scale-[1.02]" onClick={onAddField}>
-                    <Plus className="h-4 w-4" />
+                  {fieldError && (
+                    <p className="text-sm text-destructive mt-2" role="alert">
+                      {fieldError}
+                    </p>
+                  )}
+                  <Button
+                    variant="default"
+                    className="mt-6 transition-all duration-200 hover:scale-[1.02]"
+                    onClick={onAddField}
+                    aria-label="Add first form field"
+                  >
+                    <Plus className="h-4 w-4" aria-hidden />
                     Add first field
                   </Button>
                 </div>

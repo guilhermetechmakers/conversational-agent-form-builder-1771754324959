@@ -1,4 +1,5 @@
 import { Palette, Sun, Moon } from 'lucide-react'
+import { DESIGN_TOKENS } from '@/lib/design-tokens'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -48,7 +49,7 @@ export function AppearanceSettings({
               <Input
                 value={primaryColor}
                 onChange={(e) => onPrimaryColorChange(e.target.value)}
-                placeholder="#26C6FF"
+                placeholder={DESIGN_TOKENS.primaryHex}
                 className="font-mono"
               />
             </div>
@@ -66,7 +67,7 @@ export function AppearanceSettings({
               <Input
                 value={accentColor}
                 onChange={(e) => onAccentColorChange(e.target.value)}
-                placeholder="#00FF66"
+                placeholder={DESIGN_TOKENS.secondaryAccentHex}
                 className="font-mono"
               />
             </div>
@@ -84,8 +85,10 @@ export function AppearanceSettings({
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border hover:border-primary/50'
               )}
+              aria-pressed={theme === 'light'}
+              aria-label="Light theme"
             >
-              <Sun className="h-4 w-4" />
+              <Sun className="h-4 w-4" aria-hidden />
               Light
             </button>
             <button
@@ -97,8 +100,10 @@ export function AppearanceSettings({
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border hover:border-primary/50'
               )}
+              aria-pressed={theme === 'dark'}
+              aria-label="Dark theme"
             >
-              <Moon className="h-4 w-4" />
+              <Moon className="h-4 w-4" aria-hidden />
               Dark
             </button>
           </div>

@@ -71,8 +71,9 @@ export function AdvancedSettings({
               size="sm"
               onClick={addWebhook}
               disabled={!newWebhook.trim()}
+              aria-label="Add webhook URL"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4" aria-hidden />
               Add
             </Button>
           </div>

@@ -36,6 +36,13 @@ export default {
         },
         success: 'rgb(var(--success))',
         notification: 'rgb(var(--notification))',
+        'secondary-accent': 'rgb(var(--secondary-accent))',
+        'preview-bg-dark': 'rgb(var(--preview-bg-dark))',
+        'preview-bg-light': 'rgb(var(--preview-bg-light))',
+        'preview-fg-dark': 'rgb(var(--preview-fg-dark))',
+        'preview-fg-light': 'rgb(var(--preview-fg-light))',
+        'preview-border-dark': 'rgba(var(--preview-border-dark))',
+        'preview-border-light': 'rgba(var(--preview-border-light))',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

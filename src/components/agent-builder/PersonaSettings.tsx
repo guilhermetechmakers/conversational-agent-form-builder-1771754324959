@@ -103,8 +103,9 @@ export function PersonaSettings({
                 variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
+                aria-label="Upload avatar image"
               >
-                <Upload className="h-4 w-4" />
+                <Upload className="h-4 w-4" aria-hidden />
                 Upload avatar
               </Button>
               <Button
@@ -113,6 +114,7 @@ export function PersonaSettings({
                 size="sm"
                 onClick={() => onAvatarChange(null)}
                 className="text-muted-foreground"
+                aria-label="Remove avatar"
               >
                 Remove
               </Button>

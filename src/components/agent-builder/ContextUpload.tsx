@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { FileText, Upload, Link2, Sparkles, X } from 'lucide-react'
+import { FileText, Upload, Link2, Sparkles, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -92,8 +92,9 @@ export function ContextUpload({
             variant="outline"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
+            aria-label="Upload PDF or Markdown files"
           >
-            <Upload className="h-4 w-4" />
+            <Upload className="h-4 w-4" aria-hidden />
             Upload files
           </Button>
           {files.length > 0 && (
@@ -130,8 +131,9 @@ export function ContextUpload({
               size="sm"
               onClick={addUrl}
               disabled={!urlInput.trim()}
+              aria-label="Add URL"
             >
-              <Link2 className="h-4 w-4" />
+              <Link2 className="h-4 w-4" aria-hidden />
               Add
             </Button>
           </div>
@@ -159,8 +161,14 @@ export function ContextUpload({
             variant="outline"
             onClick={onIndexKnowledge}
             disabled={isIndexing}
+            aria-label={isIndexing ? 'Indexing knowledge base' : 'Index knowledge'}
+            aria-busy={isIndexing}
           >
-            <Sparkles className="h-4 w-4" />
+            {isIndexing ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Sparkles className="h-4 w-4" aria-hidden />
+            )}
             {isIndexing ? 'Indexing...' : 'Index knowledge'}
           </Button>
         )}

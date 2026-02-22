@@ -37,25 +37,35 @@ export function SavePublishButtons({
           onClick={onSave}
           disabled={isBusy}
           className="transition-all duration-200 hover:scale-[1.02]"
+          aria-label={isSaving ? 'Saving draft' : 'Save draft'}
+          aria-busy={isSaving}
         >
           {isSaving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           ) : (
-            <Save className="h-4 w-4" />
+            <Save className="h-4 w-4" aria-hidden />
           )}
           Save Draft
         </Button>
         <Button
           onClick={onPublish}
           disabled={isBusy || !canPublish || hasErrors}
-          className="transition-all duration-200 hover:scale-[1.02] hover:shadow-glow bg-gradient-to-r from-primary to-[rgb(var(--secondary-accent))]"
+          className="transition-all duration-200 hover:scale-[1.02] hover:shadow-glow bg-gradient-to-r from-primary to-secondary-accent"
+          aria-label={
+            isPublishing
+              ? 'Publishing agent'
+              : status === 'published'
+                ? 'Agent is published'
+                : 'Publish agent'
+          }
+          aria-busy={isPublishing}
         >
           {isPublishing ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           ) : status === 'published' ? (
-            <CheckCircle className="h-4 w-4" />
+            <CheckCircle className="h-4 w-4" aria-hidden />
           ) : (
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4" aria-hidden />
           )}
           {status === 'published' ? 'Published' : 'Publish'}
         </Button>

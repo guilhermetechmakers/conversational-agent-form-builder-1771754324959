@@ -90,7 +90,7 @@ export function PreviewPane({
         <div
           className={cn(
             'rounded-b-xl border-t min-h-[400px] flex flex-col',
-            isDark ? 'bg-[#1a1d24]' : 'bg-[#f8fafc]'
+            isDark ? 'bg-preview-bg-dark' : 'bg-preview-bg-light'
           )}
           style={{
             ['--preview-primary' as string]: primaryColor,
@@ -99,15 +99,15 @@ export function PreviewPane({
         >
           {/* Header */}
           <header
-            className="flex items-center gap-3 px-4 py-3 border-b"
-            style={{
-              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-            }}
+            className={cn(
+              'flex items-center gap-3 px-4 py-3 border-b',
+              isDark ? 'border-preview-border-dark' : 'border-preview-border-light'
+            )}
           >
             {avatarUrl ? (
               <img
                 src={avatarUrl}
-                alt=""
+                alt="Agent avatar"
                 className="h-10 w-10 rounded-full object-cover"
               />
             ) : (
@@ -120,14 +120,18 @@ export function PreviewPane({
             )}
             <div>
               <h2
-                className="font-semibold"
-                style={{ color: isDark ? '#fff' : '#0f172a' }}
+                className={cn(
+                  'font-semibold',
+                  isDark ? 'text-preview-fg-dark' : 'text-preview-fg-light'
+                )}
               >
                 {agentName || 'Agent name'}
               </h2>
               <p
-                className="text-xs"
-                style={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)' }}
+                className={cn(
+                  'text-xs',
+                  isDark ? 'text-white/60' : 'text-black/50'
+                )}
               >
                 Conversational form
               </p>
@@ -136,15 +140,17 @@ export function PreviewPane({
 
           {/* Progress */}
           <div
-            className="px-4 py-2 border-b"
-            style={{
-              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-            }}
+            className={cn(
+              'px-4 py-2 border-b',
+              isDark ? 'border-preview-border-dark' : 'border-preview-border-light'
+            )}
           >
             <div className="flex items-center gap-2">
               <span
-                className="text-sm"
-                style={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)' }}
+                className={cn(
+                  'text-sm',
+                  isDark ? 'text-white/60' : 'text-black/50'
+                )}
               >
                 Progress:
               </span>
@@ -158,8 +164,10 @@ export function PreviewPane({
                 />
               </div>
               <span
-                className="text-sm font-medium"
-                style={{ color: isDark ? '#fff' : '#0f172a' }}
+                className={cn(
+                  'text-sm font-medium',
+                  isDark ? 'text-preview-fg-dark' : 'text-preview-fg-light'
+                )}
               >
                 {progress}%
               </span>
@@ -189,19 +197,17 @@ export function PreviewPane({
                     'max-w-[80%] rounded-xl px-4 py-2.5',
                     msg.sender === 'assistant'
                       ? isDark
-                        ? 'bg-white/10'
-                        : 'bg-white border border-gray-200 shadow-sm'
+                        ? 'bg-white/10 text-preview-fg-dark'
+                        : 'bg-white border border-preview-border-light shadow-sm text-preview-fg-light'
                       : ''
                   )}
                   style={
                     msg.sender === 'user'
                       ? {
                           backgroundColor: primaryColor,
-                          color: '#fff',
+                          color: 'rgb(var(--preview-fg-dark))',
                         }
-                      : {
-                          color: isDark ? '#fff' : '#0f172a',
-                        }
+                      : undefined
                   }
                 >
                   <p className="text-sm">{msg.content}</p>
@@ -219,7 +225,7 @@ export function PreviewPane({
                 <div
                   className={cn(
                     'rounded-xl px-4 py-2.5',
-                    isDark ? 'bg-white/10' : 'bg-white border border-gray-200'
+                    isDark ? 'bg-white/10' : 'bg-white border border-preview-border-light'
                   )}
                 >
                   <div className="flex gap-1">
@@ -252,10 +258,10 @@ export function PreviewPane({
 
           {/* Input */}
           <div
-            className="p-4 border-t"
-            style={{
-              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-            }}
+            className={cn(
+              'p-4 border-t',
+              isDark ? 'border-preview-border-dark' : 'border-preview-border-light'
+            )}
           >
             <div className="flex gap-2">
               <Input
@@ -272,8 +278,9 @@ export function PreviewPane({
                 size="icon"
                 style={{ backgroundColor: primaryColor }}
                 className="hover:opacity-90"
+                aria-label="Send message"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4" aria-hidden />
               </Button>
             </div>
           </div>
