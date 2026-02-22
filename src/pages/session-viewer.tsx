@@ -222,10 +222,12 @@ export function SessionViewerPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SessionTranscript
-          messages={displaySession.messages}
-          onCopy={handleCopyTranscript}
-        />
+        <div id="session-transcript" className="scroll-mt-6">
+          <SessionTranscript
+            messages={displaySession.messages}
+            onCopy={handleCopyTranscript}
+          />
+        </div>
 
         <div className="space-y-6">
           <SessionExtractedData
@@ -235,6 +237,11 @@ export function SessionViewerPage() {
             onNotesChange={setLocalNotes}
             onMarkReviewed={handleMarkReviewed}
             isMarkingReviewed={markReviewed.isPending}
+            emptyStateCta={{
+              label: 'View conversation',
+              onClick: () =>
+                document.getElementById('session-transcript')?.scrollIntoView({ behavior: 'smooth' }),
+            }}
           />
           <SessionMetadata
             status={displaySession.status}
