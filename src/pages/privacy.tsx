@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
-const PRIVACY_SECTIONS = [
+interface PrivacySection {
+  id: string
+  title: string
+  content: string
+}
+
+const PRIVACY_SECTIONS: PrivacySection[] = [
   {
     id: 'data-collection',
     title: 'Data collection',
@@ -35,7 +41,37 @@ const PRIVACY_SECTIONS = [
     content:
       'You have the right to access, correct, export, and delete your data in accordance with GDPR and CCPA.',
   },
-] as const
+]
+
+function PrivacyEmptyState() {
+  return (
+    <div
+      className="flex flex-col items-center justify-center py-16 px-6 rounded-xl border border-border bg-card/50 animate-fade-in"
+      role="status"
+      aria-live="polite"
+    >
+      <div
+        className="rounded-full bg-muted p-4 mb-4"
+        aria-hidden
+      >
+        <Shield className="h-12 w-12 text-muted-foreground" />
+      </div>
+      <h2 className="text-lg font-semibold text-foreground mb-2">
+        No privacy sections available
+      </h2>
+      <p className="text-muted-foreground text-center max-w-md">
+        Privacy policy content is being prepared. Please check back later or
+        contact support for more information.
+      </p>
+      <Button asChild variant="outline" size="lg" className="mt-6">
+        <Link to="/" className="inline-flex items-center gap-2">
+          <ArrowLeft className="h-5 w-5" aria-hidden />
+          Back to home
+        </Link>
+      </Button>
+    </div>
+  )
+}
 
 export function PrivacyPage() {
   return (
@@ -67,70 +103,76 @@ export function PrivacyPage() {
             </p>
           </header>
 
-          <nav
-            className="mb-8 sm:mb-12"
-            aria-label="Privacy policy sections"
-          >
-            <ul className="flex flex-wrap gap-2">
-              {PRIVACY_SECTIONS.map((section) => (
-                <li key={section.id}>
-                  <a
-                    href={`#${section.id}`}
-                    className={cn(
-                      'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium',
-                      'text-muted-foreground transition-colors',
-                      'hover:bg-muted hover:text-foreground',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-                    )}
+          {PRIVACY_SECTIONS.length === 0 ? (
+            <PrivacyEmptyState />
+          ) : (
+            <>
+              <nav
+                className="mb-8 sm:mb-12"
+                aria-label="Privacy policy sections"
+              >
+                <ul className="flex flex-wrap gap-2">
+                  {PRIVACY_SECTIONS.map((section) => (
+                    <li key={section.id}>
+                      <a
+                        href={`#${section.id}`}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium',
+                          'text-muted-foreground transition-colors',
+                          'hover:bg-muted hover:text-foreground',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                        )}
+                      >
+                        <Shield className="h-4 w-4" aria-hidden />
+                        {section.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
+              <div className="space-y-6 sm:space-y-8">
+                {PRIVACY_SECTIONS.map((section, index) => (
+                  <section
+                    key={section.id}
+                    id={section.id}
+                    aria-labelledby={`${section.id}-heading`}
+                    className="animate-fade-in-up"
+                    style={{ animationDelay: `${index * 75}ms` }}
                   >
-                    <Shield className="h-4 w-4" aria-hidden />
-                    {section.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+                    <Card className="transition-all duration-300 hover:shadow-card-hover">
+                      <CardHeader className="pb-2">
+                        <h2
+                          id={`${section.id}-heading`}
+                          className="text-xl font-semibold text-foreground sm:text-2xl"
+                        >
+                          {section.title}
+                        </h2>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-base leading-relaxed text-muted-foreground sm:text-lg sm:leading-7">
+                          {section.content}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </section>
+                ))}
+              </div>
 
-          <div className="space-y-6 sm:space-y-8">
-            {PRIVACY_SECTIONS.map((section, index) => (
-              <section
-                key={section.id}
-                id={section.id}
-                aria-labelledby={`${section.id}-heading`}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${index * 75}ms` }}
-              >
-                <Card className="transition-all duration-300 hover:shadow-card-hover">
-                  <CardHeader className="pb-2">
-                    <h2
-                      id={`${section.id}-heading`}
-                      className="text-xl font-semibold text-foreground sm:text-2xl"
-                    >
-                      {section.title}
-                    </h2>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-base leading-relaxed text-muted-foreground sm:text-lg sm:leading-7">
-                      {section.content}
-                    </p>
-                  </CardContent>
-                </Card>
-              </section>
-            ))}
-          </div>
-
-          <footer className="mt-12 animate-fade-in-up sm:mt-16">
-            <Button asChild variant="outline" size="lg">
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2"
-                aria-label="Back to home"
-              >
-                <ArrowLeft className="h-5 w-5" aria-hidden />
-                Back to home
-              </Link>
-            </Button>
-          </footer>
+              <footer className="mt-12 animate-fade-in-up sm:mt-16">
+                <Button asChild variant="outline" size="lg">
+                  <Link
+                    to="/"
+                    className="inline-flex items-center gap-2"
+                    aria-label="Back to home"
+                  >
+                    <ArrowLeft className="h-5 w-5" aria-hidden />
+                    Back to home
+                  </Link>
+                </Button>
+              </footer>
+            </>
+          )}
         </article>
       </main>
     </div>
