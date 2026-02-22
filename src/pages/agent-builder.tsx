@@ -515,6 +515,7 @@ export function AgentBuilderPage() {
               avatarUrl={avatarUrl}
               fields={fields}
               systemInstructions={systemInstructions}
+              isLoading={!isNew && isLoading}
             />
           </div>
         </div>
