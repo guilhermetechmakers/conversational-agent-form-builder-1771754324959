@@ -68,6 +68,8 @@ export default {
         glow: '0 0 20px rgba(38, 198, 255, 0.3)',
         dropdown: 'var(--shadow-dropdown)',
         badge: '0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        input:
+          '0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
       },
       keyframes: {
         'fade-in': {
