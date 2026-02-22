@@ -39,6 +39,7 @@ export interface Agent {
   appearance: {
     primaryColor: string
     accentColor: string
+    theme: 'light' | 'dark'
     logoUrl?: string
   }
   context?: {
