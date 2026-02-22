@@ -36,16 +36,20 @@ export function SessionActions({
   isMarkingReviewed = false,
   isReviewed = false,
 }: SessionActionsProps) {
+  const buttonClasses =
+    'transition-all duration-200 hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+
   return (
-    <div className="flex flex-wrap gap-4 mt-6">
+    <div className="flex flex-wrap gap-3 sm:gap-4 mt-6" role="group" aria-label="Session actions">
       {onCopyTranscript && (
         <Button
           variant="outline"
           size="sm"
           onClick={onCopyTranscript}
-          className="px-4 py-2 bg-[#23262B] rounded-lg shadow-md hover:bg-[#26C6FF] hover:shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
+          className={buttonClasses}
+          aria-label="Copy transcript to clipboard"
         >
-          <Copy className="h-4 w-4" />
+          <Copy className="h-4 w-4" aria-hidden />
           Copy
         </Button>
       )}
@@ -54,9 +58,10 @@ export function SessionActions({
           variant="outline"
           size="sm"
           onClick={onExportJson}
-          className="px-4 py-2 bg-[#23262B] rounded-lg shadow-md hover:bg-[#26C6FF] hover:shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
+          className={buttonClasses}
+          aria-label="Export session as JSON"
         >
-          <FileJson className="h-4 w-4" />
+          <FileJson className="h-4 w-4" aria-hidden />
           Export JSON
         </Button>
       )}
@@ -65,9 +70,10 @@ export function SessionActions({
           variant="outline"
           size="sm"
           onClick={onExportCsv}
-          className="px-4 py-2 bg-[#23262B] rounded-lg shadow-md hover:bg-[#26C6FF] hover:shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
+          className={buttonClasses}
+          aria-label="Export session as CSV"
         >
-          <FileSpreadsheet className="h-4 w-4" />
+          <FileSpreadsheet className="h-4 w-4" aria-hidden />
           Export CSV
         </Button>
       )}
@@ -76,15 +82,13 @@ export function SessionActions({
           size="sm"
           onClick={onResendWebhook}
           disabled={isResendingWebhook}
-          className={cn(
-            'px-4 py-2 bg-[#23262B] rounded-lg shadow-md hover:bg-[#26C6FF] hover:shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#26C6FF]',
-            isResendingWebhook && 'opacity-70'
-          )}
+          className={cn(buttonClasses, isResendingWebhook && 'opacity-70')}
+          aria-label={isResendingWebhook ? 'Resending webhook' : 'Forward to webhook'}
         >
           {isResendingWebhook ? (
-            <RotateCcw className="h-4 w-4 animate-spin" />
+            <RotateCcw className="h-4 w-4 animate-spin" aria-hidden />
           ) : (
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4" aria-hidden />
           )}
           Forward to Webhook
         </Button>
@@ -94,9 +98,10 @@ export function SessionActions({
           variant="outline"
           size="sm"
           onClick={onAssignOwner}
-          className="px-4 py-2 bg-[#23262B] rounded-lg shadow-md hover:bg-[#26C6FF] hover:shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
+          className={buttonClasses}
+          aria-label="Assign session to owner"
         >
-          <UserPlus className="h-4 w-4" />
+          <UserPlus className="h-4 w-4" aria-hidden />
           Assign to Owner
         </Button>
       )}
@@ -105,9 +110,10 @@ export function SessionActions({
           variant="outline"
           size="sm"
           onClick={onAddNotes}
-          className="px-4 py-2 bg-[#23262B] rounded-lg shadow-md hover:bg-[#26C6FF] hover:shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
+          className={buttonClasses}
+          aria-label="Add notes to session"
         >
-          <StickyNote className="h-4 w-4" />
+          <StickyNote className="h-4 w-4" aria-hidden />
           Add Notes
         </Button>
       )}
@@ -116,15 +122,19 @@ export function SessionActions({
           size="sm"
           onClick={onMarkReviewed}
           disabled={isMarkingReviewed || isReviewed}
-          className={cn(
-            'px-4 py-2 bg-[#23262B] rounded-lg shadow-md hover:bg-[#26C6FF] hover:shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#26C6FF]',
-            (isMarkingReviewed || isReviewed) && 'opacity-75'
-          )}
+          className={cn(buttonClasses, (isMarkingReviewed || isReviewed) && 'opacity-75')}
+          aria-label={
+            isReviewed
+              ? 'Session already reviewed'
+              : isMarkingReviewed
+                ? 'Marking as reviewed'
+                : 'Mark session as reviewed'
+          }
         >
           {isMarkingReviewed ? (
-            <RotateCcw className="h-4 w-4 animate-spin" />
+            <RotateCcw className="h-4 w-4 animate-spin" aria-hidden />
           ) : (
-            <CheckCircle className="h-4 w-4" />
+            <CheckCircle className="h-4 w-4" aria-hidden />
           )}
           Mark Reviewed
         </Button>

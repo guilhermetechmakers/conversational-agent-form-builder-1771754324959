@@ -1,4 +1,5 @@
 import { User, Globe, Monitor } from 'lucide-react'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
 export interface VisitorInfo {
   ip?: string
@@ -23,23 +24,28 @@ export function RelatedSessionsPanel({
 
   if (!hasVisitorInfo && !hasRelatedSessions) {
     return (
-      <div className="flex-1 p-6 bg-[#23262B] rounded-lg shadow-md mt-6">
-        <h2 className="text-xl font-semibold mb-4">
-          Related Sessions / Visitor Info
-        </h2>
-        <div
-          className="flex flex-col items-center justify-center h-48 text-[#C0C6D1]"
-          role="status"
-        >
-          <User className="h-12 w-12 mb-4" />
-          <p className="text-lg font-semibold mt-4 text-white">
-            No visitor data
-          </p>
-          <p className="text-sm text-[#C0C6D1] mt-2">
-            Visitor metadata will appear when available
-          </p>
-        </div>
-      </div>
+      <Card className="flex-1 mt-6">
+        <CardHeader>
+          <h2 className="text-xl font-semibold leading-none tracking-tight">
+            Related Sessions / Visitor Info
+          </h2>
+        </CardHeader>
+        <CardContent>
+          <div
+            className="flex flex-col items-center justify-center min-h-[12rem] py-8 text-center"
+            role="status"
+            aria-label="No visitor data"
+          >
+            <User className="h-12 w-12 text-muted-foreground mb-4" aria-hidden />
+            <p className="text-lg font-semibold text-foreground">
+              No visitor data
+            </p>
+            <p className="text-sm text-muted-foreground mt-2 max-w-xs">
+              Visitor metadata will appear when available
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -50,14 +56,14 @@ export function RelatedSessionsPanel({
     infoItems.push({
       label: 'IP Address',
       value: visitorInfo.ip,
-      icon: <Monitor className="h-4 w-4 text-[#C0C6D1] shrink-0" />,
+      icon: <Monitor className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />,
     })
   }
   if (visitorInfo?.referrer) {
     infoItems.push({
       label: 'Referrer',
       value: visitorInfo.referrer,
-      icon: <Globe className="h-4 w-4 text-[#C0C6D1] shrink-0" />,
+      icon: <Globe className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />,
     })
   }
   if (visitorInfo?.sessionCount !== undefined) {
@@ -74,29 +80,33 @@ export function RelatedSessionsPanel({
   }
 
   return (
-    <div className="flex-1 p-6 bg-[#23262B] rounded-lg shadow-md mt-6">
-      <h2 className="text-xl font-semibold mb-4">
-        Related Sessions / Visitor Info
-      </h2>
-      <div className="space-y-2">
-        {infoItems.map((item) => (
-          <div
-            key={item.label}
-            className="flex justify-between items-center gap-4"
-          >
-            <div className="flex items-center gap-2">
-              {item.icon}
-              <span className="text-sm font-medium">{item.label}</span>
-            </div>
-            <span
-              className="text-sm text-[#C0C6D1] truncate max-w-[200px]"
-              title={item.value}
+    <Card className="flex-1 mt-6">
+      <CardHeader>
+        <h2 className="text-xl font-semibold leading-none tracking-tight">
+          Related Sessions / Visitor Info
+        </h2>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {infoItems.map((item) => (
+            <div
+              key={item.label}
+              className="flex justify-between items-center gap-4 p-3 rounded-lg bg-background border border-border"
             >
-              {item.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+              <div className="flex items-center gap-2 min-w-0">
+                {item.icon}
+                <span className="text-sm font-medium text-foreground">{item.label}</span>
+              </div>
+              <span
+                className="text-sm text-muted-foreground truncate max-w-[200px]"
+                title={item.value}
+              >
+                {item.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

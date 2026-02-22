@@ -133,32 +133,36 @@ export function SessionTranscript({
           </div>
         ) : messages.length === 0 ? (
           <div
-            className="flex flex-col items-center justify-center py-12 text-center rounded-lg"
+            className="flex flex-col items-center justify-center py-12 text-center rounded-lg border border-dashed border-border bg-background/50"
             role="status"
+            aria-label="No messages in transcript"
           >
             <MessageSquare
               className="h-12 w-12 text-muted-foreground mb-4"
               aria-hidden
             />
             <p className="text-lg font-semibold text-foreground">No messages yet</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              This session has no conversation transcript
+            <p className="text-sm text-muted-foreground mt-2 max-w-[280px]">
+              This session has no conversation transcript. The conversation may not have started yet.
             </p>
             {effectiveEmptyCta.to ? (
               <Button asChild className="mt-4" size="default">
-                <Link to={effectiveEmptyCta.to}>{effectiveEmptyCta.label}</Link>
+                <Link to={effectiveEmptyCta.to} aria-label={effectiveEmptyCta.label}>
+                  {effectiveEmptyCta.label}
+                </Link>
               </Button>
             ) : effectiveEmptyCta.onClick ? (
               <Button
                 className="mt-4"
                 size="default"
                 onClick={effectiveEmptyCta.onClick}
+                aria-label={effectiveEmptyCta.label}
               >
                 {effectiveEmptyCta.label}
               </Button>
             ) : (
               <Button asChild className="mt-4" size="default">
-                <Link to={DEFAULT_EMPTY_CTA.to!}>
+                <Link to={DEFAULT_EMPTY_CTA.to!} aria-label={DEFAULT_EMPTY_CTA.label}>
                   {DEFAULT_EMPTY_CTA.label}
                 </Link>
               </Button>

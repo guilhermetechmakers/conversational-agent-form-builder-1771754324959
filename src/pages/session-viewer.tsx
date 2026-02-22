@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, MessageSquare, AlertCircle, RotateCcw } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { ArrowLeft, MessageSquare, AlertCircle, RotateCcw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import {
   SessionTranscript,
@@ -22,6 +26,12 @@ import {
 } from '@/components/session-viewer'
 import { useSession, useMarkSessionReviewed, useResendSessionWebhook } from '@/hooks/useSession'
 import type { Session, AuditLogEntry } from '@/types'
+import { cn } from '@/lib/utils'
+
+const assignOwnerSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
+})
+type AssignOwnerFormData = z.infer<typeof assignOwnerSchema>
 
 const MOCK_SESSION: Session = {
   id: 's1',
@@ -87,7 +97,11 @@ export function SessionViewerPage() {
   const [localNotes, setLocalNotes] = useState('')
   const [assignOwnerOpen, setAssignOwnerOpen] = useState(false)
   const [addNotesOpen, setAddNotesOpen] = useState(false)
-  const [assignOwnerEmail, setAssignOwnerEmail] = useState('')
+
+  const assignOwnerForm = useForm<AssignOwnerFormData>({
+    resolver: zodResolver(assignOwnerSchema),
+    defaultValues: { email: '' },
+  })
 
   const {
     data: session,
@@ -95,6 +109,7 @@ export function SessionViewerPage() {
     isError,
     error,
     refetch,
+    isRefetching,
   } = useSession(id, !!id)
 
   const markReviewed = useMarkSessionReviewed()
@@ -186,15 +201,11 @@ export function SessionViewerPage() {
     )
   }, [id, localNotes, displaySession?.notes, markReviewed])
 
-  const handleAssignOwner = useCallback(() => {
-    if (!assignOwnerEmail.trim()) {
-      toast.error('Please enter an email address')
-      return
-    }
-    toast.success(`Assigned to ${assignOwnerEmail}`)
+  const handleAssignOwner = (data: AssignOwnerFormData) => {
+    toast.success(`Assigned to ${data.email}`)
     setAssignOwnerOpen(false)
-    setAssignOwnerEmail('')
-  }, [assignOwnerEmail])
+    assignOwnerForm.reset({ email: '' })
+  }
 
   const handleAddNotes = useCallback(() => {
     setAddNotesOpen(false)
@@ -207,19 +218,20 @@ export function SessionViewerPage() {
 
   if (isError && !displaySession) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-[#181B20] text-white -m-4 md:-m-6 p-8">
-        <div className="rounded-xl border border-[#31343A] bg-[#23262B] p-8 max-w-md text-center">
-          <AlertCircle className="h-12 w-12 text-[#FFD600] mx-auto mb-4" />
+      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-background text-foreground -m-4 md:-m-6 p-8">
+        <div className="rounded-xl border border-border bg-card p-8 max-w-md text-center">
+          <AlertCircle className="h-12 w-12 text-notification mx-auto mb-4" aria-hidden />
           <h2 className="text-lg font-semibold mb-2">Failed to load session</h2>
-          <p className="text-sm text-[#C0C6D1] mb-6">
+          <p className="text-sm text-muted-foreground mb-6">
             {(error as { message?: string })?.message ??
               'An error occurred while loading this session.'}
           </p>
-          <div className="flex gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
               variant="outline"
               onClick={() => refetch()}
-              className="gap-2 px-4 py-2 bg-[#26C6FF] rounded-lg text-white hover:bg-[#00FF66] transition duration-150 ease-in-out"
+              className="gap-2"
+              aria-label="Retry loading session"
             >
               <RotateCcw className="h-4 w-4" />
               Retry
@@ -227,7 +239,7 @@ export function SessionViewerPage() {
             <Button asChild>
               <Link
                 to="/dashboard/sessions"
-                className="px-4 py-2 bg-[#26C6FF] rounded-lg text-white hover:bg-[#00FF66] transition"
+                aria-label="Back to sessions list"
               >
                 Back to sessions
               </Link>
@@ -240,19 +252,16 @@ export function SessionViewerPage() {
 
   if (!displaySession) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-[#181B20] text-white -m-4 md:-m-6 p-8">
-        <div className="rounded-xl border border-[#31343A] bg-[#23262B] p-8 max-w-md text-center">
-          <MessageSquare className="h-12 w-12 text-[#C0C6D1] mx-auto mb-4" />
+      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-background text-foreground -m-4 md:-m-6 p-8">
+        <div className="rounded-xl border border-border bg-card p-8 max-w-md text-center">
+          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden />
           <h2 className="text-lg font-semibold mt-4">Session not found</h2>
-          <p className="text-sm text-[#C0C6D1] mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             The session you're looking for doesn't exist or you don't have
             access to it.
           </p>
-          <Button asChild className="mt-4">
-            <Link
-              to="/dashboard/sessions"
-              className="px-4 py-2 bg-[#26C6FF] rounded-lg text-white hover:bg-[#00FF66] transition"
-            >
+          <Button asChild className="mt-4" aria-label="Back to sessions list">
+            <Link to="/dashboard/sessions">
               Back to sessions
             </Link>
           </Button>
@@ -262,34 +271,47 @@ export function SessionViewerPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-8rem)] bg-[#181B20] text-white -m-4 md:-m-6 overflow-hidden">
+    <div className="flex flex-col min-h-[calc(100vh-8rem)] bg-background text-foreground -m-4 md:-m-6 overflow-hidden">
+      {/* Refetching indicator */}
+      {isRefetching && (
+        <div
+          className="flex items-center justify-center gap-2 py-2 bg-primary/10 text-primary text-sm font-medium shrink-0"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          Refreshing session...
+        </div>
+      )}
       {/* Header */}
-      <header className="flex items-center justify-between p-6 bg-gradient-to-r from-[#181B20] to-[#23262B] shrink-0">
-        <div className="flex items-center space-x-4">
+      <header className="flex items-center justify-between p-4 sm:p-6 bg-gradient-to-r from-background to-card shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0">
           <Link
             to="/dashboard/sessions"
-            className="flex items-center gap-2 text-sm text-[#C0C6D1] hover:text-[#26C6FF] transition duration-150 ease-in-out"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition duration-200 w-fit"
+            aria-label="Back to sessions list"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 shrink-0" />
             Back
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <span className="text-lg font-semibold">Session {id}</span>
-            <span className="text-sm text-[#C0C6D1]">
+            <span className="text-sm text-muted-foreground">
               {displaySession.agentName ?? 'Unknown agent'}
             </span>
             <span
-              className={`px-2 py-1 rounded-full text-sm ${
-                displaySession.status === 'completed'
-                  ? 'bg-[#00FF66] text-[#181B20]'
-                  : displaySession.status === 'active'
-                    ? 'bg-[#26C6FF] text-[#181B20]'
-                    : 'bg-[#FFD600] text-[#181B20]'
-              }`}
+              className={cn(
+                'px-2 py-1 rounded-full text-sm font-medium',
+                displaySession.status === 'completed' && 'bg-success text-primary-foreground',
+                displaySession.status === 'active' && 'bg-primary text-primary-foreground',
+                displaySession.status !== 'completed' &&
+                  displaySession.status !== 'active' &&
+                  'bg-notification text-primary-foreground'
+              )}
             >
               {displaySession.status}
             </span>
-            <span className="text-sm text-[#C0C6D1]">
+            <span className="text-sm text-muted-foreground">
               {new Date(displaySession.createdAt).toLocaleString()}
             </span>
           </div>
@@ -299,11 +321,11 @@ export function SessionViewerPage() {
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="hidden md:flex flex-col w-16 bg-[#181B20] shrink-0 items-center pt-4">
+        <aside className="hidden md:flex flex-col w-16 bg-background shrink-0 items-center pt-4">
           <Link
             to="/dashboard/sessions"
-            className="p-2 rounded-lg text-[#C0C6D1] hover:bg-[#23262B] hover:text-[#26C6FF] transition duration-150 ease-in-out"
-            aria-label="Back to sessions"
+            className="p-2 rounded-lg text-muted-foreground hover:bg-card hover:text-primary transition duration-200"
+            aria-label="Back to sessions list"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
@@ -384,34 +406,60 @@ export function SessionViewerPage() {
       </div>
 
       {/* Assign to Owner Dialog */}
-      <Dialog open={assignOwnerOpen} onOpenChange={setAssignOwnerOpen}>
+      <Dialog
+        open={assignOwnerOpen}
+        onOpenChange={(open) => {
+          setAssignOwnerOpen(open)
+          if (!open) assignOwnerForm.reset({ email: '' })
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Assign to Owner</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <form
+            onSubmit={assignOwnerForm.handleSubmit(handleAssignOwner)}
+            className="space-y-4 py-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="owner-email">Owner email</Label>
               <Input
                 id="owner-email"
                 type="email"
                 placeholder="owner@example.com"
-                value={assignOwnerEmail}
-                onChange={(e) => setAssignOwnerEmail(e.target.value)}
-                className="bg-[#181B20] border-[#31343A]"
+                autoComplete="email"
+                aria-invalid={!!assignOwnerForm.formState.errors.email}
+                aria-describedby={
+                  assignOwnerForm.formState.errors.email
+                    ? 'owner-email-error'
+                    : undefined
+                }
+                className={cn(
+                  assignOwnerForm.formState.errors.email && 'border-destructive focus-visible:ring-destructive'
+                )}
+                {...assignOwnerForm.register('email')}
               />
+              {assignOwnerForm.formState.errors.email && (
+                <p
+                  id="owner-email-error"
+                  className="text-sm text-destructive animate-fade-in"
+                  role="alert"
+                >
+                  {assignOwnerForm.formState.errors.email.message}
+                </p>
+              )}
             </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setAssignOwnerOpen(false)}
-              className="bg-[#23262B] hover:bg-[#26C6FF]"
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleAssignOwner}>Assign</Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setAssignOwnerOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Assign</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -424,25 +472,28 @@ export function SessionViewerPage() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="notes-dialog">Notes</Label>
-              <textarea
+              <Textarea
                 id="notes-dialog"
                 value={localNotes}
                 onChange={(e) => setLocalNotes(e.target.value)}
                 placeholder="Add notes for this session..."
                 rows={4}
-                className="w-full rounded-lg border border-[#31343A] bg-[#181B20] px-4 py-2 text-white placeholder:text-[#C0C6D1] focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
+                aria-label="Session notes for QA or audit"
               />
             </div>
           </div>
           <DialogFooter>
             <Button
+              type="button"
               variant="outline"
               onClick={() => setAddNotesOpen(false)}
-              className="bg-[#23262B] hover:bg-[#26C6FF]"
+              aria-label="Cancel and close notes dialog"
             >
               Cancel
             </Button>
-            <Button onClick={handleAddNotes}>Save</Button>
+            <Button onClick={handleAddNotes} aria-label="Save notes">
+              Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
