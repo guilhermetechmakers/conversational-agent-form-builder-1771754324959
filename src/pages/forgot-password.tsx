@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { forgotPassword } from '@/services/auth'
-import { Mail, Loader2, MailCheck } from 'lucide-react'
+import { Mail, Loader2, MailCheck, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const schema = z.object({
@@ -53,15 +53,16 @@ export function ForgotPasswordPage() {
   if (sent) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="flex flex-col items-center gap-4 px-2 text-center sm:px-0">
+          <h1 className="sr-only">Reset password</h1>
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <MailCheck className="h-7 w-7" aria-hidden />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold text-foreground">
+            <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
               Check your email
-            </h1>
-            <p className="text-muted-foreground">
+            </h2>
+            <p className="text-sm text-muted-foreground sm:text-base">
               We&apos;ve sent password reset instructions to your email address.
             </p>
           </div>
@@ -73,7 +74,7 @@ export function ForgotPasswordPage() {
               <button
                 type="button"
                 onClick={() => setSent(false)}
-                className="font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
+                className="font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background rounded"
                 aria-label="Try sending the reset email again"
               >
                 try again
@@ -92,11 +93,11 @@ export function ForgotPasswordPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="text-center">
+      <div className="px-2 text-center sm:px-0">
         <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">
           Reset password
         </h1>
-        <p className="mt-1 text-muted-foreground">
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
           Enter your email and we&apos;ll send reset instructions
         </p>
       </div>
@@ -140,15 +141,19 @@ export function ForgotPasswordPage() {
         {submitError && (
           <div
             id="submit-error"
-            className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            className={cn(
+              'flex items-start gap-3 rounded-lg border border-destructive/20',
+              'bg-destructive/5 px-4 py-3 text-sm text-destructive'
+            )}
             role="alert"
           >
-            {submitError}
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" aria-hidden />
+            <span>{submitError}</span>
           </div>
         )}
         <Button
           type="submit"
-          className="w-full transition-all duration-200 hover:scale-[1.02] focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+          className="w-full transition-all duration-200 hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           disabled={isLoading}
           aria-busy={isLoading}
         >
@@ -168,7 +173,7 @@ export function ForgotPasswordPage() {
       <p className="text-center text-sm text-muted-foreground">
         <Link
           to="/login"
-          className="font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
+          className="font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background rounded"
         >
           Back to log in
         </Link>
