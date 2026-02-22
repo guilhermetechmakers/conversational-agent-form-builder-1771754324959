@@ -37,11 +37,12 @@ export function DashboardPage() {
   }
 
   const { data: statsData, isLoading: statsLoading } = useDashboardStats()
-  const { data: agentsData, isLoading: agentsLoading } = useDashboardAgents(
-    filters,
-    agentsPage,
-    pageSize
-  )
+  const {
+    data: agentsData,
+    isLoading: agentsLoading,
+    isError: agentsError,
+    error: agentsErrorDetail,
+  } = useDashboardAgents(filters, agentsPage, pageSize)
   const { data: sessionsData, isLoading: sessionsLoading } = useDashboardSessions(
     filters,
     1,
@@ -92,22 +93,28 @@ export function DashboardPage() {
         />
       </div>
 
-      {agentsTotal > 0 && (
-        <PaginationFilters
-          status={statusFilter}
-          onStatusChange={setStatusFilter}
-          dateFrom={dateFrom || undefined}
-          dateTo={dateTo || undefined}
-          onDateFromChange={setDateFrom}
-          onDateToChange={setDateTo}
-          page={agentsPage}
-          totalPages={agentsTotalPages}
-          totalItems={agentsTotal}
-          onPageChange={setAgentsPage}
-          pageSize={pageSize}
-          onPageSizeChange={setPageSize}
-        />
-      )}
+      <PaginationFilters
+        status={statusFilter}
+        onStatusChange={setStatusFilter}
+        dateFrom={dateFrom || undefined}
+        dateTo={dateTo || undefined}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        page={agentsPage}
+        totalPages={agentsTotalPages}
+        totalItems={agentsTotal}
+        onPageChange={setAgentsPage}
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+        isLoading={agentsLoading}
+        error={
+          agentsError && agentsErrorDetail instanceof Error
+            ? agentsErrorDetail.message
+            : agentsError
+              ? 'Failed to load data'
+              : null
+        }
+      />
 
       <CreateAgentCTA />
     </div>
