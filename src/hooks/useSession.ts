@@ -1,12 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchSession,
+  listSessions,
   markSessionReviewed,
   resendSessionWebhook,
 } from '@/api/sessions'
+import type { ListSessionsParams } from '@/api/sessions'
 
 export const sessionKeys = {
   all: ['sessions'] as const,
+  list: (params?: ListSessionsParams) =>
+    [...sessionKeys.all, 'list', params] as const,
   detail: (id: string) => [...sessionKeys.all, 'detail', id] as const,
 }
 
@@ -15,6 +19,13 @@ export function useSession(id: string | undefined, enabled = true) {
     queryKey: sessionKeys.detail(id ?? ''),
     queryFn: () => fetchSession(id!),
     enabled: enabled && !!id,
+  })
+}
+
+export function useListSessions(params?: ListSessionsParams) {
+  return useQuery({
+    queryKey: sessionKeys.list(params),
+    queryFn: () => listSessions(params),
   })
 }
 
