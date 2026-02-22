@@ -142,6 +142,7 @@ export function AgentBuilderPage() {
   const [retentionDays, setRetentionDays] = useState(30)
   const [status, setStatus] = useState<'draft' | 'published'>('draft')
   const [activeSection, setActiveSection] = useState('metadata')
+  const [lastSaveError, setLastSaveError] = useState<string | null>(null)
 
   const hydrateFromAgent = useCallback(() => {
     if (!agent) return
@@ -221,8 +222,10 @@ export function AgentBuilderPage() {
         id,
         payload: buildPayload(),
       })
+      setLastSaveError(null)
       toast.success('Draft saved', { duration: 2000 })
     } catch {
+      setLastSaveError('Autosave failed. Your changes may not have been saved.')
       toast.error('Autosave failed')
     }
   }, [isNew, id, name, slug, buildPayload, saveMutation])
@@ -285,9 +288,11 @@ export function AgentBuilderPage() {
         id: isNew ? null : id ?? null,
         payload,
       })
+      setLastSaveError(null)
       toast.success(isNew ? 'Agent created successfully' : 'Agent saved')
       if (isNew) navigate(`/dashboard/agents/${saved.id}`)
     } catch {
+      setLastSaveError('Failed to save agent. Please try again.')
       toast.error('Failed to save agent')
     }
   }
@@ -520,6 +525,16 @@ export function AgentBuilderPage() {
                   onPasscodeChange={setPasscode}
                   onRateLimitChange={setRateLimit}
                   onRetentionDaysChange={setRetentionDays}
+                  isSaving={saveMutation.isPending}
+                  saveError={lastSaveError ?? undefined}
+                  onRetrySave={
+                    lastSaveError
+                      ? () => {
+                          setLastSaveError(null)
+                          performAutosave()
+                        }
+                      : undefined
+                  }
                 />
               </TabsContent>
             </Tabs>
