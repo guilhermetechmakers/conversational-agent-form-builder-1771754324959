@@ -77,7 +77,7 @@ export function QuickStatsPanel({
     return (
       <div
         className={cn(
-          'bg-[#FFD600] text-[#181B20] p-4 rounded-lg',
+          'bg-notification text-primary-900 p-4 rounded-lg',
           className
         )}
         role="alert"

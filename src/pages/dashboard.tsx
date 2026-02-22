@@ -47,6 +47,7 @@ export function DashboardPage() {
     isLoading: agentsLoading,
     isError: agentsError,
     error: agentsErrorDetail,
+    refetch: refetchAgents,
   } = useDashboardAgents(filters, agentsPage, pageSize)
   const {
     data: sessionsData,
@@ -98,6 +99,15 @@ export function DashboardPage() {
         <AgentList
           agents={agents}
           isLoading={agentsLoading}
+          isError={agentsError}
+          error={
+            agentsError && agentsErrorDetail instanceof Error
+              ? agentsErrorDetail.message
+              : agentsError
+                ? 'Failed to load agents'
+                : undefined
+          }
+          onRetry={() => refetchAgents()}
           onDelete={handleDeleteAgent}
         />
 
