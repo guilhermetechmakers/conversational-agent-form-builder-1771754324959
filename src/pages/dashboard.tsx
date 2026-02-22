@@ -48,11 +48,13 @@ export function DashboardPage() {
     isError: agentsError,
     error: agentsErrorDetail,
   } = useDashboardAgents(filters, agentsPage, pageSize)
-  const { data: sessionsData, isLoading: sessionsLoading } = useDashboardSessions(
-    filters,
-    1,
-    5
-  )
+  const {
+    data: sessionsData,
+    isLoading: sessionsLoading,
+    isError: sessionsError,
+    error: sessionsErrorDetail,
+    refetch: refetchSessions,
+  } = useDashboardSessions(filters, 1, 5)
 
   const stats: DashboardStats | undefined = statsData
   const agents = agentsData?.agents ?? []
@@ -112,6 +114,15 @@ export function DashboardPage() {
         <RecentSessionsFeed
           sessions={sessions}
           isLoading={sessionsLoading}
+          isError={sessionsError}
+          error={
+            sessionsError && sessionsErrorDetail instanceof Error
+              ? sessionsErrorDetail.message
+              : sessionsError
+                ? 'Failed to load sessions'
+                : undefined
+          }
+          onRetry={() => refetchSessions()}
         />
       </div>
 

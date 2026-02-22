@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MessageSquare } from 'lucide-react'
+import { AlertCircle, MessageSquare } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,8 +17,13 @@ export interface SessionEntry {
 export interface RecentSessionsFeedProps {
   sessions?: SessionEntry[]
   isLoading?: boolean
+  isError?: boolean
+  error?: string
+  onRetry?: () => void
   className?: string
 }
+
+const EMPTY_STATE_ICON_SIZE = 'h-6 w-6'
 
 function formatTimeAgo(dateStr: string): string {
   const date = new Date(dateStr)
@@ -37,8 +42,52 @@ function formatTimeAgo(dateStr: string): string {
 export function RecentSessionsFeed({
   sessions = [],
   isLoading,
+  isError,
+  error,
+  onRetry,
   className,
 }: RecentSessionsFeedProps) {
+  if (isError) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle>Recent Sessions</CardTitle>
+          <CardDescription>Latest activity</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div
+            className="flex flex-col items-center justify-center py-12 px-4 text-center animate-fade-in"
+            role="alert"
+            aria-live="assertive"
+          >
+            <div className="rounded-full bg-destructive/10 p-4 mb-4">
+              <AlertCircle
+                className={cn(EMPTY_STATE_ICON_SIZE, 'text-destructive')}
+                aria-hidden
+              />
+            </div>
+            <h3 className="font-semibold text-lg mb-2 text-foreground">
+              Failed to load sessions
+            </h3>
+            <p className="text-muted-foreground mb-6 max-w-sm">
+              {error ?? 'Something went wrong. Please try again.'}
+            </p>
+            {onRetry && (
+              <Button
+                variant="outline"
+                onClick={onRetry}
+                aria-label="Retry loading sessions"
+                className="transition-all duration-200 hover:scale-[1.02]"
+              >
+                Try again
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   if (isLoading) {
     return (
       <Card className={className}>
@@ -71,21 +120,43 @@ export function RecentSessionsFeed({
           <CardDescription>Latest activity</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="rounded-full bg-muted p-4 mb-4">
-              <MessageSquare className="h-10 w-10 text-muted-foreground" />
+          <div
+            className="flex flex-col items-center justify-center py-12 px-4 text-center animate-fade-in"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="rounded-full bg-primary/10 p-5 mb-6 ring-4 ring-primary/5">
+              <MessageSquare
+                className={cn(EMPTY_STATE_ICON_SIZE, 'text-primary')}
+                aria-hidden
+              />
             </div>
-            <h3 className="font-semibold text-lg mb-2">No sessions yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-sm">
+            <h3 className="font-semibold text-xl mb-2 text-foreground">
+              No sessions yet
+            </h3>
+            <p className="text-muted-foreground mb-2 max-w-sm text-base leading-relaxed">
               Sessions will appear here when visitors interact with your agents.
             </p>
-            <Button
-              variant="outline"
-              asChild
-              aria-label="View all sessions"
-            >
-              <Link to="/dashboard/sessions">View all sessions</Link>
-            </Button>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+              Create and publish an agent to start collecting conversations.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button
+                asChild
+                aria-label="Create your first agent to start collecting sessions"
+                className="transition-all duration-200 hover:scale-[1.02] hover:shadow-glow"
+              >
+                <Link to="/dashboard/agents/new">Create your first agent</Link>
+              </Button>
+              <Button
+                variant="outline"
+                asChild
+                aria-label="View all sessions"
+                className="transition-all duration-200 hover:scale-[1.02]"
+              >
+                <Link to="/dashboard/sessions">View all sessions</Link>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
