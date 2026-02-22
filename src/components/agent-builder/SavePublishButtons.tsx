@@ -27,16 +27,15 @@ export function SavePublishButtons({
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
       {hasErrors && (
-        <div className="flex-1 text-sm text-destructive">
+        <div className="flex-1 text-sm text-warning-500 font-medium">
           {validationErrors[0]}
         </div>
       )}
       <div className="flex gap-2">
         <Button
-          variant="secondary"
           onClick={onSave}
           disabled={isBusy}
-          className="transition-all duration-200 hover:scale-[1.02]"
+          className="bg-accent-500 text-white rounded px-4 py-2 hover:bg-accent-600 transition duration-150 hover:scale-[1.02]"
           aria-label={isSaving ? 'Saving draft' : 'Save draft'}
           aria-busy={isSaving}
         >
@@ -50,7 +49,7 @@ export function SavePublishButtons({
         <Button
           onClick={onPublish}
           disabled={isBusy || !canPublish || hasErrors}
-          className="transition-all duration-200 hover:scale-[1.02] hover:shadow-glow bg-gradient-to-r from-primary to-secondary-accent"
+          className="bg-green-500 text-white rounded px-4 py-2 hover:bg-green-600 transition duration-150 hover:scale-[1.02]"
           aria-label={
             isPublishing
               ? 'Publishing agent'

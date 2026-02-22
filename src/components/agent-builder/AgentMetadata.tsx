@@ -59,26 +59,26 @@ export function AgentMetadata({
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
+    <Card className="bg-secondary-800 p-6 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-card-hover border-divider">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <Settings className="h-5 w-5 text-accent-500" />
           Agent metadata
         </CardTitle>
-        <CardDescription>Name, slug, description, and tags</CardDescription>
+        <CardDescription className="text-secondary-500">Name, slug, description, and tags</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="agent-name">Name</Label>
-          <Input
-            id="agent-name"
-            value={name}
-            onChange={(e) => handleNameChange(e.target.value)}
-            placeholder="My Agent"
-            className={cn(
-              'transition-all duration-200 focus:ring-2 focus:ring-primary/50',
-              errors.name && 'border-destructive focus-visible:ring-destructive'
-            )}
+            <Label htmlFor="agent-name" className="text-white">Name</Label>
+            <Input
+              id="agent-name"
+              value={name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="My Agent"
+              className={cn(
+                'bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500 transition duration-150',
+                errors.name && 'border-destructive focus-visible:ring-destructive'
+              )}
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? 'agent-name-error' : undefined}
           />
@@ -93,14 +93,14 @@ export function AgentMetadata({
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="agent-slug">Slug (public path)</Label>
+          <Label htmlFor="agent-slug" className="text-white">Slug (public path)</Label>
           <Input
             id="agent-slug"
             value={slug}
             onChange={(e) => onSlugChange(e.target.value)}
             placeholder="my-agent"
             className={cn(
-              'font-mono text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/50',
+              'bg-primary-700 text-white rounded p-3 font-mono text-sm placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500 transition duration-150',
               errors.slug && 'border-destructive focus-visible:ring-destructive'
             )}
             aria-invalid={!!errors.slug}
@@ -115,23 +115,23 @@ export function AgentMetadata({
               {errors.slug}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-secondary-500">
             Public URL: /chat/{slug || 'your-slug'}
           </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="agent-description">Description</Label>
+          <Label htmlFor="agent-description" className="text-white">Description</Label>
           <Textarea
             id="agent-description"
             value={description}
             onChange={(e) => onDescriptionChange(e.target.value)}
             placeholder="What does this agent collect?"
             rows={3}
-            className="transition-all duration-200 focus:ring-2 focus:ring-primary/50 resize-none"
+            className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500 resize-none transition duration-150"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="agent-tags">Tags</Label>
+          <Label htmlFor="agent-tags" className="text-white">Tags</Label>
           <div className="flex gap-2">
             <Input
               id="agent-tags"
@@ -139,7 +139,7 @@ export function AgentMetadata({
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
               placeholder="Add tag..."
-              className="transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+              className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500 transition duration-150"
             />
             <Button
               type="button"
@@ -158,7 +158,7 @@ export function AgentMetadata({
                 <Badge
                   key={tag}
                   variant="secondary"
-                  className="gap-1 pr-1 transition-all duration-200 hover:border-primary/50"
+                  className="gap-1 pr-1 bg-primary-700 text-white border-divider transition-all duration-200 hover:border-accent-500/50"
                 >
                   {tag}
                   <button

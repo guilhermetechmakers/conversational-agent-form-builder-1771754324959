@@ -34,6 +34,16 @@
     --preview-fg-light: 15 23 42; /* #0f172a slate-900 */
     --preview-border-dark: 255, 255, 255, 0.1;
     --preview-border-light: 0, 0, 0, 0.08;
+    /* Agent Builder spec tokens */
+    --primary-900: 24 27 32;
+    --primary-800: 30 33 38;
+    --primary-700: 49 52 58;
+    --secondary-800: 35 38 43;
+    --secondary-500: 192 198 209;
+    --accent-500: 38 198 255;
+    --accent-600: 25 170 220;
+    --divider: 49 52 58;
+    --warning-500: 255 214 0;
   }
 
   * {

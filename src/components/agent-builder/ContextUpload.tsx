@@ -174,24 +174,24 @@ export function ContextUpload({
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
+    <Card className="bg-secondary-800 p-6 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-card-hover border-divider">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-primary" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <FileText className="h-5 w-5 text-accent-500" />
           Context
         </CardTitle>
-        <CardDescription>FAQ, files, and product docs for the agent to reference</CardDescription>
+        <CardDescription className="text-secondary-500">FAQ, files, and product docs for the agent to reference</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="faq-context">FAQ / Context</Label>
+          <Label htmlFor="faq-context" className="text-white">FAQ / Context</Label>
           <Textarea
             id="faq-context"
             value={faq}
             onChange={(e) => onFaqChange(e.target.value)}
             placeholder="Paste FAQs or product docs for the agent to reference"
             rows={6}
-            className="resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+            className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 resize-none focus:ring-2 focus:ring-accent-500 transition duration-150"
           />
         </div>
         <div className="space-y-2">

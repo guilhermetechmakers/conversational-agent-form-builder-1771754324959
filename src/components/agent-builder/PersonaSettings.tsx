@@ -47,19 +47,19 @@ export function PersonaSettings({
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
+    <Card className="bg-secondary-800 p-6 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-card-hover border-divider">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <MessageSquare className="h-5 w-5 text-accent-500" />
           Persona
         </CardTitle>
-        <CardDescription>Tone, system instructions, and avatar</CardDescription>
+        <CardDescription className="text-secondary-500">Tone, system instructions, and avatar</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label>Tone</Label>
+          <Label className="text-white">Tone</Label>
           <Select value={tone} onValueChange={onToneChange}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-primary-700 text-white rounded p-3 focus:ring-2 focus:ring-accent-500">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -72,17 +72,17 @@ export function PersonaSettings({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>System instructions</Label>
+          <Label className="text-white">System instructions</Label>
           <Textarea
             value={systemInstructions}
             onChange={(e) => onSystemInstructionsChange(e.target.value)}
             placeholder="How should the agent behave? What persona to adopt?"
             rows={4}
-            className="resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+            className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 resize-none focus:ring-2 focus:ring-accent-500 transition duration-150"
           />
         </div>
         <div className="space-y-2">
-          <Label>Avatar</Label>
+          <Label className="text-white">Avatar</Label>
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-border">
               <AvatarImage src={avatarUrl} alt="Agent avatar" />
@@ -103,6 +103,7 @@ export function PersonaSettings({
                 variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
+                className="border-divider text-white hover:bg-primary-700"
                 aria-label="Upload avatar image"
               >
                 <Upload className="h-4 w-4" aria-hidden />

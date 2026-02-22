@@ -46,24 +46,24 @@ export function AdvancedSettings({
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
+    <Card className="bg-secondary-800 p-6 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-card-hover border-divider">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <Shield className="h-5 w-5 text-accent-500" />
           Advanced
         </CardTitle>
-        <CardDescription>Webhooks, passcode, rate limits, and session retention</CardDescription>
+        <CardDescription className="text-secondary-500">Webhooks, passcode, rate limits, and session retention</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label>Webhook URL(s)</Label>
+          <Label className="text-white">Webhook URL(s)</Label>
           <div className="flex gap-2">
             <Input
               value={newWebhook}
               onChange={(e) => setNewWebhook(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addWebhook())}
               placeholder="https://your-crm.com/webhook"
-              className="transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+              className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500 transition duration-150"
             />
             <Button
               type="button"
@@ -100,10 +100,10 @@ export function AdvancedSettings({
             </ul>
           )}
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-border p-4">
+        <div className="flex items-center justify-between rounded-lg border border-divider p-4 bg-primary-700/50">
           <div>
-            <Label>Passcode protection</Label>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <Label className="text-white">Passcode protection</Label>
+            <p className="text-xs text-secondary-500 mt-0.5">
               Require passcode to access this agent
             </p>
           </div>
@@ -114,18 +114,18 @@ export function AdvancedSettings({
         </div>
         {passcodeEnabled && (
           <div className="space-y-2">
-            <Label>Passcode</Label>
+            <Label className="text-white">Passcode</Label>
             <Input
               type="password"
               value={passcode}
               onChange={(e) => onPasscodeChange(e.target.value)}
               placeholder="Enter passcode"
-              className="transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+              className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500 transition duration-150"
             />
           </div>
         )}
         <div className="space-y-2">
-          <Label>Rate limit (requests per minute)</Label>
+          <Label className="text-white">Rate limit (requests per minute)</Label>
           <Input
             type="number"
             min={1}
@@ -133,11 +133,11 @@ export function AdvancedSettings({
             value={rateLimit || ''}
             onChange={(e) => onRateLimitChange(parseInt(e.target.value, 10) || 0)}
             placeholder="60"
-            className="transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+            className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500 transition duration-150"
           />
         </div>
         <div className="space-y-2">
-          <Label>Session retention (days)</Label>
+          <Label className="text-white">Session retention (days)</Label>
           <Input
             type="number"
             min={1}
@@ -145,7 +145,7 @@ export function AdvancedSettings({
             value={retentionDays || ''}
             onChange={(e) => onRetentionDaysChange(parseInt(e.target.value, 10) || 0)}
             placeholder="30"
-            className="transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+            className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500 transition duration-150"
           />
           <p className="text-xs text-muted-foreground">
             How long to keep session data

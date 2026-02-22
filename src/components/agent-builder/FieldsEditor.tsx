@@ -105,39 +105,44 @@ function SortableFieldItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'flex items-start gap-2 rounded-lg border border-border p-4 transition-all duration-200',
-        isDragging ? 'opacity-80 shadow-lg z-10 bg-card' : 'bg-card/50'
+        'flex items-start gap-4 rounded-lg border border-divider p-4 transition-all duration-200',
+        isDragging ? 'opacity-80 shadow-lg z-10 bg-secondary-800' : 'bg-primary-700/50'
       )}
     >
       <div
         {...attributes}
         {...listeners}
-        className="mt-2 cursor-grab active:cursor-grabbing touch-none rounded p-1 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="cursor-move mt-2 rounded p-1 hover:bg-primary-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
         role="button"
         tabIndex={0}
         aria-label={`Drag to reorder field: ${field.label || 'Untitled'}`}
       >
-        <GripVertical className="h-5 w-5 text-muted-foreground" aria-hidden />
+        <GripVertical className="h-5 w-5 text-secondary-500 cursor-move" aria-hidden />
       </div>
       <div className="flex-1 space-y-3 min-w-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor={fieldControlId(fieldId, 'label')}>Label</Label>
+            <Label htmlFor={fieldControlId(fieldId, 'label')} className="text-white">Label</Label>
             <Input
               id={fieldControlId(fieldId, 'label')}
               value={field.label}
               onChange={(e) => onUpdate({ label: e.target.value })}
               placeholder="Field label"
+              className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500"
               aria-label="Field label"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor={fieldControlId(fieldId, 'type')}>Type</Label>
+            <Label htmlFor={fieldControlId(fieldId, 'type')} className="text-white">Type</Label>
             <Select
               value={field.type}
               onValueChange={(v) => onUpdate({ type: v as FieldType })}
             >
-              <SelectTrigger id={fieldControlId(fieldId, 'type')} aria-label="Field type">
+              <SelectTrigger
+                id={fieldControlId(fieldId, 'type')}
+                className="bg-primary-700 text-white rounded p-3 focus:ring-2 focus:ring-accent-500"
+                aria-label="Field type"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -152,22 +157,24 @@ function SortableFieldItem({
         </div>
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-[200px] space-y-2">
-            <Label htmlFor={fieldControlId(fieldId, 'placeholder')}>Placeholder</Label>
+            <Label htmlFor={fieldControlId(fieldId, 'placeholder')} className="text-white">Placeholder</Label>
             <Input
               id={fieldControlId(fieldId, 'placeholder')}
               value={field.placeholder ?? ''}
               onChange={(e) => onUpdate({ placeholder: e.target.value })}
               placeholder="Sample value"
+              className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500"
               aria-label="Placeholder text"
             />
           </div>
           <div className="flex-1 min-w-[140px] space-y-2">
-            <Label htmlFor={fieldControlId(fieldId, 'sampleData')}>Sample data</Label>
+            <Label htmlFor={fieldControlId(fieldId, 'sampleData')} className="text-white">Sample data</Label>
             <Input
               id={fieldControlId(fieldId, 'sampleData')}
               value={field.sampleData ?? ''}
               onChange={(e) => onUpdate({ sampleData: e.target.value })}
               placeholder="e.g. John Doe"
+              className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500"
               aria-label="Sample data for preview"
             />
           </div>
@@ -176,16 +183,17 @@ function SortableFieldItem({
               id={fieldControlId(fieldId, 'required')}
               checked={field.required}
               onCheckedChange={(v) => onUpdate({ required: v })}
+              className="bg-primary-700 focus:ring-accent-500 data-[state=checked]:bg-accent-500"
               aria-label={`Field is ${field.required ? 'required' : 'optional'}`}
             />
-            <Label htmlFor={fieldControlId(fieldId, 'required')} className="cursor-pointer">
+            <Label htmlFor={fieldControlId(fieldId, 'required')} className="cursor-pointer text-white text-lg font-medium">
               Required
             </Label>
           </div>
         </div>
         {field.type === 'select' && (
           <div className="space-y-2">
-            <Label>Options</Label>
+            <Label className="text-white">Options</Label>
             <div className="space-y-2">
               {options.map((opt, idx) => (
                 <div key={idx} className="flex gap-2">
@@ -193,12 +201,14 @@ function SortableFieldItem({
                     value={opt.label}
                     onChange={(e) => updateOption(idx, { label: e.target.value })}
                     placeholder="Label"
+                    className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500"
                     aria-label={`Option ${idx + 1} label`}
                   />
                   <Input
                     value={opt.value}
                     onChange={(e) => updateOption(idx, { value: e.target.value })}
                     placeholder="Value"
+                    className="bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500"
                     aria-label={`Option ${idx + 1} value`}
                   />
                   <Button
@@ -227,20 +237,20 @@ function SortableFieldItem({
           </div>
         )}
         <div className="flex gap-2 flex-wrap">
-          <Label className="w-full">Validation rules</Label>
+          <Label className="w-full text-white">Validation rules</Label>
           {VALIDATION_RULES.map((rule) => {
             const val = field.validation?.[rule.value]
             return (
               <div key={rule.value} className="flex items-center gap-2">
                 <Label
                   htmlFor={fieldControlId(fieldId, `validation-${rule.value}`)}
-                  className="text-xs text-muted-foreground"
+                  className="text-xs text-secondary-500"
                 >
                   {rule.label}
                 </Label>
                 <Input
                   id={fieldControlId(fieldId, `validation-${rule.value}`)}
-                  className="w-24"
+                  className="w-24 bg-primary-700 text-white rounded p-3 placeholder:text-secondary-500 focus:ring-2 focus:ring-accent-500"
                   value={typeof val === 'string' || typeof val === 'number' ? String(val) : ''}
                   onChange={(e) =>
                     onUpdate({
@@ -329,19 +339,19 @@ export function FieldsEditor({
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="bg-secondary-800 p-6 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-card-hover border-divider">
+      <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
         <div>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" aria-hidden />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <MessageSquare className="h-5 w-5 text-accent-500" aria-hidden />
             Fields
           </CardTitle>
-          <CardDescription>Add, remove, and reorder fields to collect</CardDescription>
+          <CardDescription className="text-secondary-500">Add, remove, and reorder fields to collect</CardDescription>
         </div>
         <Button
           size="sm"
-          variant="outline"
           onClick={onAddField}
+          className="bg-accent-500 text-white hover:bg-accent-600 transition duration-150"
           aria-label="Add form field"
         >
           <Plus className="h-4 w-4" aria-hidden />
@@ -365,35 +375,27 @@ export function FieldsEditor({
                 <div
                   className={cn(
                     'rounded-xl border-2 border-dashed p-8 sm:p-12 text-center animate-fade-in',
-                    'border-border bg-muted/30',
+                    'border-divider bg-secondary-800/50',
                     fieldError && 'border-destructive bg-destructive/10'
                   )}
                   role="status"
                   aria-label="No form fields added yet. Add your first field to get started."
                 >
-                  <div className="rounded-full bg-primary/10 p-4 w-fit mx-auto mb-4">
-                    <MessageSquare
-                      className="h-12 w-12 text-primary"
-                      aria-hidden
-                    />
+                  <div className="icon-empty-state w-16 h-16 text-secondary-500 mx-auto mb-4">
+                    <MessageSquare className="h-16 w-16" aria-hidden />
                   </div>
-                  <p className="font-semibold text-lg text-foreground">No fields yet</p>
-                  <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+                  <h2 className="text-2xl font-semibold text-center text-white">No fields yet</h2>
+                  <p className="text-center text-secondary-500 mt-2 max-w-sm mx-auto">
                     Add fields to collect information conversationally. Drag to reorder once added.
                   </p>
                   {fieldError && (
-                    <p className="text-sm text-destructive mt-2" role="alert">
+                    <p className="text-warning-500 font-medium mt-2" role="alert">
                       {fieldError}
                     </p>
                   )}
                   <Button
-                    variant="default"
                     size="lg"
-                    className={cn(
-                      'mt-6 gap-2 transition-all duration-200',
-                      'hover:scale-[1.02] hover:shadow-glow active:scale-[0.98]',
-                      'min-h-11 px-6'
-                    )}
+                    className="bg-accent-500 text-white rounded px-4 py-2 hover:bg-accent-600 transition mt-6 gap-2 min-h-11 px-6"
                     onClick={onAddField}
                     aria-label="Add your first form field to get started"
                   >

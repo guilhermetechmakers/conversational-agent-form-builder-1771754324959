@@ -30,25 +30,25 @@ export function AppearanceSettings({
   onThemeChange,
 }: AppearanceSettingsProps) {
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
+    <Card className="bg-secondary-800 p-6 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-card-hover border-divider">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Palette className="h-5 w-5 text-primary" aria-hidden />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <Palette className="h-5 w-5 text-accent-500" aria-hidden />
           Appearance
         </CardTitle>
-        <CardDescription>Primary color, accent, theme, and logo preview</CardDescription>
+        <CardDescription className="text-secondary-500">Primary color, accent, theme, and logo preview</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <div className="flex space-x-4 flex-wrap gap-4">
           <div className="space-y-2">
-            <Label htmlFor={PRIMARY_COLOR_INPUT_ID}>Primary color</Label>
-            <div className="flex gap-2">
+            <Label htmlFor={PRIMARY_COLOR_INPUT_ID} className="text-white">Primary color</Label>
+            <div className="flex gap-2 items-center">
               <input
                 type="color"
                 id={`${PRIMARY_COLOR_INPUT_ID}-picker`}
                 value={primaryColor}
                 onChange={(e) => onPrimaryColorChange(e.target.value)}
-                className="h-10 w-14 min-w-14 rounded-lg border border-border cursor-pointer bg-card p-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+                className="color-input bg-primary-700 rounded-full w-10 h-10 cursor-pointer border border-divider focus:ring-2 focus:ring-accent-500"
                 aria-label="Primary color picker"
               />
               <Input
@@ -56,20 +56,20 @@ export function AppearanceSettings({
                 value={primaryColor}
                 onChange={(e) => onPrimaryColorChange(e.target.value)}
                 placeholder={DESIGN_TOKENS.primaryHex}
-                className="font-mono flex-1"
+                className="font-mono flex-1 bg-primary-700 text-white rounded p-3 focus:ring-2 focus:ring-accent-500"
                 aria-label="Primary color hex value"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor={ACCENT_COLOR_INPUT_ID}>Accent color</Label>
-            <div className="flex gap-2">
+            <Label htmlFor={ACCENT_COLOR_INPUT_ID} className="text-white">Accent color</Label>
+            <div className="flex gap-2 items-center">
               <input
                 type="color"
                 id={`${ACCENT_COLOR_INPUT_ID}-picker`}
                 value={accentColor}
                 onChange={(e) => onAccentColorChange(e.target.value)}
-                className="h-10 w-14 min-w-14 rounded-lg border border-border cursor-pointer bg-card p-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+                className="color-input bg-primary-700 rounded-full w-10 h-10 cursor-pointer border border-divider focus:ring-2 focus:ring-accent-500"
                 aria-label="Accent color picker"
               />
               <Input
@@ -77,7 +77,7 @@ export function AppearanceSettings({
                 value={accentColor}
                 onChange={(e) => onAccentColorChange(e.target.value)}
                 placeholder={DESIGN_TOKENS.secondaryAccentHex}
-                className="font-mono flex-1"
+                className="font-mono flex-1 bg-primary-700 text-white rounded p-3 focus:ring-2 focus:ring-accent-500"
                 aria-label="Accent color hex value"
               />
             </div>

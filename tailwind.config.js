@@ -43,6 +43,16 @@ export default {
         'preview-fg-light': 'rgb(var(--preview-fg-light))',
         'preview-border-dark': 'rgba(var(--preview-border-dark))',
         'preview-border-light': 'rgba(var(--preview-border-light))',
+        /* Agent Builder spec tokens */
+        'primary-900': 'rgb(var(--primary-900))',
+        'primary-800': 'rgb(var(--primary-800))',
+        'primary-700': 'rgb(var(--primary-700))',
+        'secondary-800': 'rgb(var(--secondary-800))',
+        'secondary-500': 'rgb(var(--secondary-500))',
+        'accent-500': 'rgb(var(--accent-500))',
+        'accent-600': 'rgb(var(--accent-600))',
+        divider: 'rgb(var(--divider))',
+        'warning-500': 'rgb(var(--warning-500))',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
