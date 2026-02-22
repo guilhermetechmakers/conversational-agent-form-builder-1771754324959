@@ -25,7 +25,11 @@ export function CreateAgentCTA({ className }: CreateAgentCTAProps) {
           'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
         )}
       >
-        <Link to="/dashboard/agents/new" className="flex items-center gap-2">
+        <Link
+          to="/dashboard/agents/new"
+          className="flex items-center gap-2"
+          aria-label="Create new agent"
+        >
           <Plus className="h-5 w-5 shrink-0" aria-hidden />
           <span>Create Agent</span>
         </Link>

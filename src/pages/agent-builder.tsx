@@ -178,7 +178,7 @@ export function AgentBuilderPage() {
         id: isNew ? null : id ?? null,
         payload,
       })
-      toast.success('Agent saved')
+      toast.success(isNew ? 'Agent created successfully' : 'Agent saved')
       if (isNew) navigate(`/dashboard/agents/${saved.id}`)
     } catch {
       toast.error('Failed to save agent')

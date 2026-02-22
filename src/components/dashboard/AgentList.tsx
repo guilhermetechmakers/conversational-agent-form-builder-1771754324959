@@ -77,16 +77,29 @@ export function AgentList({
           <CardDescription>Your conversational agents</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="rounded-full bg-muted p-4 mb-4">
-              <Bot className="h-10 w-10 text-muted-foreground" />
+          <div
+            className="flex flex-col items-center justify-center py-12 px-4 text-center animate-fade-in"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="rounded-full bg-primary/10 p-5 mb-6 ring-4 ring-primary/5">
+              <Bot className="h-12 w-12 text-primary" aria-hidden />
             </div>
-            <h3 className="font-semibold text-lg mb-2">No agents yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-sm">
+            <h3 className="font-semibold text-xl mb-2 text-foreground">
+              No agents yet
+            </h3>
+            <p className="text-muted-foreground mb-2 max-w-sm text-base leading-relaxed">
               Create your first conversational agent to start collecting leads and
               data through natural chat.
             </p>
-            <Button asChild>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+              Add form fields, configure persona, and publish your public chat link.
+            </p>
+            <Button
+              asChild
+              aria-label="Create your first agent"
+              className="transition-all duration-200 hover:scale-[1.02] hover:shadow-glow"
+            >
               <Link to="/dashboard/agents/new">Create your first agent</Link>
             </Button>
           </div>
@@ -102,7 +115,7 @@ export function AgentList({
           <CardTitle>Agents</CardTitle>
           <CardDescription>Your conversational agents</CardDescription>
         </div>
-        <Button asChild size="sm">
+        <Button asChild size="sm" aria-label="Create new agent">
           <Link to="/dashboard/agents/new">Create</Link>
         </Button>
       </CardHeader>
@@ -133,7 +146,7 @@ export function AgentList({
                   variant={agent.status === 'published' ? 'default' : 'secondary'}
                   className={cn(
                     agent.status === 'published'
-                      ? 'bg-[rgb(var(--success))]/20 text-[rgb(var(--success))]'
+                      ? 'bg-success/20 text-success'
                       : ''
                   )}
                 >

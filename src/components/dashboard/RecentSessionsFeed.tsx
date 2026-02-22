@@ -79,7 +79,11 @@ export function RecentSessionsFeed({
             <p className="text-muted-foreground mb-6 max-w-sm">
               Sessions will appear here when visitors interact with your agents.
             </p>
-            <Button variant="outline" asChild>
+            <Button
+              variant="outline"
+              asChild
+              aria-label="View all sessions"
+            >
               <Link to="/dashboard/sessions">View all sessions</Link>
             </Button>
           </div>
@@ -112,7 +116,7 @@ export function RecentSessionsFeed({
                 className={cn(
                   'rounded-full px-2 py-0.5 text-xs font-medium',
                   session.status === 'completed' &&
-                    'bg-[rgb(var(--success))]/20 text-[rgb(var(--success))]',
+                    'bg-success/20 text-success',
                   session.status === 'active' && 'bg-primary/20 text-primary',
                   session.status === 'abandoned' && 'bg-muted text-muted-foreground'
                 )}
@@ -122,7 +126,12 @@ export function RecentSessionsFeed({
             </Link>
           ))}
         </div>
-        <Button variant="ghost" className="w-full mt-4" asChild>
+        <Button
+          variant="ghost"
+          className="w-full mt-4"
+          asChild
+          aria-label="View all sessions"
+        >
           <Link to="/dashboard/sessions">View all sessions</Link>
         </Button>
       </CardContent>

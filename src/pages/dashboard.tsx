@@ -75,10 +75,17 @@ export function DashboardPage() {
     [queryClient]
   )
 
+  const isInitialLoading = statsLoading || agentsLoading
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div
+      className="space-y-8 animate-fade-in"
+      role="main"
+      aria-busy={isInitialLoading}
+      aria-label="Dashboard overview"
+    >
       <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-1">
           Overview of your agents and sessions
         </p>
