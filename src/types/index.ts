@@ -70,6 +70,15 @@ export interface CapturedField {
   type: FieldType
   validatedValue: unknown
   rawValue?: string
+  validationWarning?: string
+}
+
+export interface AuditLogEntry {
+  id: string
+  timestamp: string
+  action: string
+  details?: string
+  isRetry?: boolean
 }
 
 export interface Session {

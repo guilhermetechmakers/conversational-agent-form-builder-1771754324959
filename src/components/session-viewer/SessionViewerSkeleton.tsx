@@ -1,57 +1,45 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-
 export function SessionViewerSkeleton() {
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="flex flex-col h-full bg-[#181B20] text-white animate-pulse">
+      <div className="flex items-center justify-between p-6 bg-gradient-to-r from-[#181B20] to-[#23262B]">
         <div className="space-y-2">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64" />
+          <div className="h-8 bg-[#31343A] rounded w-48" />
+          <div className="h-4 bg-[#31343A] rounded w-32 mt-2" />
         </div>
-        <div className="flex gap-2">
-          <Skeleton className="h-9 w-20" />
-          <Skeleton className="h-9 w-16" />
-          <Skeleton className="h-9 w-16" />
-          <Skeleton className="h-9 w-32" />
-        </div>
+        <div className="h-6 bg-[#31343A] rounded-full w-24" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <Skeleton className="h-6 w-24" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex gap-3">
-                <Skeleton className="h-5 w-5 shrink-0 rounded" />
-                <Skeleton
-                  className="h-12 rounded-lg"
-                  style={{ width: `${60 + (i % 3) * 15}%` }}
+      <div className="flex flex-1 overflow-hidden">
+        <div className="hidden md:flex flex-col w-16 bg-[#181B20]" />
+        <div className="flex-1 flex flex-col overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 p-6 bg-[#23262B] rounded-lg shadow-md">
+            <div className="h-6 bg-[#31343A] rounded w-24 mb-4" />
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="h-12 bg-[#31343A] rounded-lg"
+                  style={{ width: `${70 + (i % 2) * 15}%` }}
                 />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </div>
+          </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <Skeleton className="h-6 w-36" />
-            <Skeleton className="h-4 w-48 mt-2" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-10 w-full" />
-              </div>
+          <div className="flex-1 p-6 bg-[#23262B] rounded-lg shadow-md">
+            <div className="h-6 bg-[#31343A] rounded w-36 mb-4" />
+            <div className="space-y-4">
+              {[1, 2].map((i) => (
+                <div key={i} className="h-8 bg-[#31343A] rounded" />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-9 w-24 bg-[#31343A] rounded-lg" />
             ))}
-            <Skeleton className="h-20 w-full mt-4" />
-            <Skeleton className="h-10 w-full" />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -1,18 +1,27 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { MessageSquare, AlertCircle, RotateCcw } from 'lucide-react'
+import { ArrowLeft, MessageSquare, AlertCircle, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import {
   SessionTranscript,
   SessionExtractedData,
-  SessionMetadata,
   SessionActions,
   SessionViewerSkeleton,
+  AuditTrailPanel,
+  RelatedSessionsPanel,
 } from '@/components/session-viewer'
 import { useSession, useMarkSessionReviewed, useResendSessionWebhook } from '@/hooks/useSession'
-import type { Session } from '@/types'
+import type { Session, AuditLogEntry } from '@/types'
 
 const MOCK_SESSION: Session = {
   id: 's1',
@@ -52,9 +61,33 @@ const MOCK_SESSION: Session = {
   ],
 }
 
+const MOCK_AUDIT_LOGS: AuditLogEntry[] = [
+  {
+    id: 'a1',
+    timestamp: '2025-02-22T10:31:00Z',
+    action: 'Webhook delivered',
+    details: 'https://api.example.com/webhook',
+  },
+  {
+    id: 'a2',
+    timestamp: '2025-02-22T10:30:50Z',
+    action: 'Session completed',
+  },
+  {
+    id: 'a3',
+    timestamp: '2025-02-22T10:30:00Z',
+    action: 'Webhook delivery failed',
+    details: 'Connection timeout',
+    isRetry: true,
+  },
+]
+
 export function SessionViewerPage() {
   const { id } = useParams<{ id: string }>()
   const [localNotes, setLocalNotes] = useState('')
+  const [assignOwnerOpen, setAssignOwnerOpen] = useState(false)
+  const [addNotesOpen, setAddNotesOpen] = useState(false)
+  const [assignOwnerEmail, setAssignOwnerEmail] = useState('')
 
   const {
     data: session,
@@ -67,7 +100,11 @@ export function SessionViewerPage() {
   const markReviewed = useMarkSessionReviewed()
   const resendWebhook = useResendSessionWebhook()
 
-  const displaySession = session ?? (isError && (error as { status?: number })?.status === 404 ? MOCK_SESSION : null)
+  const displaySession =
+    session ??
+    (isError && (error as { status?: number })?.status === 404 ? MOCK_SESSION : null)
+
+  const auditLogs = displaySession ? MOCK_AUDIT_LOGS : []
 
   useEffect(() => {
     if (displaySession?.notes !== undefined) {
@@ -83,6 +120,11 @@ export function SessionViewerPage() {
     navigator.clipboard.writeText(text)
     toast.success('Transcript copied to clipboard')
   }, [displaySession])
+
+  const handleCopyMessage = useCallback((content: string) => {
+    navigator.clipboard.writeText(content)
+    toast.success('Message copied')
+  }, [])
 
   const handleExportJson = useCallback(() => {
     if (!displaySession) return
@@ -144,26 +186,51 @@ export function SessionViewerPage() {
     )
   }, [id, localNotes, displaySession?.notes, markReviewed])
 
+  const handleAssignOwner = useCallback(() => {
+    if (!assignOwnerEmail.trim()) {
+      toast.error('Please enter an email address')
+      return
+    }
+    toast.success(`Assigned to ${assignOwnerEmail}`)
+    setAssignOwnerOpen(false)
+    setAssignOwnerEmail('')
+  }, [assignOwnerEmail])
+
+  const handleAddNotes = useCallback(() => {
+    setAddNotesOpen(false)
+    toast.success('Notes updated')
+  }, [])
+
   if (isLoading && !displaySession) {
     return <SessionViewerSkeleton />
   }
 
   if (isError && !displaySession) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in">
-        <div className="rounded-xl border border-border bg-card p-8 max-w-md text-center">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-[#181B20] text-white -m-4 md:-m-6 p-8">
+        <div className="rounded-xl border border-[#31343A] bg-[#23262B] p-8 max-w-md text-center">
+          <AlertCircle className="h-12 w-12 text-[#FFD600] mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">Failed to load session</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            {(error as { message?: string })?.message ?? 'An error occurred while loading this session.'}
+          <p className="text-sm text-[#C0C6D1] mb-6">
+            {(error as { message?: string })?.message ??
+              'An error occurred while loading this session.'}
           </p>
           <div className="flex gap-3 justify-center">
-            <Button variant="outline" onClick={() => refetch()} className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              className="gap-2 px-4 py-2 bg-[#26C6FF] rounded-lg text-white hover:bg-[#00FF66] transition duration-150 ease-in-out"
+            >
               <RotateCcw className="h-4 w-4" />
               Retry
             </Button>
             <Button asChild>
-              <Link to="/dashboard/sessions">Back to sessions</Link>
+              <Link
+                to="/dashboard/sessions"
+                className="px-4 py-2 bg-[#26C6FF] rounded-lg text-white hover:bg-[#00FF66] transition"
+              >
+                Back to sessions
+              </Link>
             </Button>
           </div>
         </div>
@@ -173,15 +240,21 @@ export function SessionViewerPage() {
 
   if (!displaySession) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in">
-        <div className="rounded-xl border border-border bg-card p-8 max-w-md text-center">
-          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-lg font-semibold mb-2">Session not found</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            The session you're looking for doesn't exist or you don't have access to it.
+      <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in bg-[#181B20] text-white -m-4 md:-m-6 p-8">
+        <div className="rounded-xl border border-[#31343A] bg-[#23262B] p-8 max-w-md text-center">
+          <MessageSquare className="h-12 w-12 text-[#C0C6D1] mx-auto mb-4" />
+          <h2 className="text-lg font-semibold mt-4">Session not found</h2>
+          <p className="text-sm text-[#C0C6D1] mt-2">
+            The session you're looking for doesn't exist or you don't have
+            access to it.
           </p>
-          <Button asChild>
-            <Link to="/dashboard/sessions">Back to sessions</Link>
+          <Button asChild className="mt-4">
+            <Link
+              to="/dashboard/sessions"
+              className="px-4 py-2 bg-[#26C6FF] rounded-lg text-white hover:bg-[#00FF66] transition"
+            >
+              Back to sessions
+            </Link>
           </Button>
         </div>
       </div>
@@ -189,69 +262,186 @@ export function SessionViewerPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+    <div className="flex flex-col min-h-[calc(100vh-8rem)] bg-[#181B20] text-white -m-4 md:-m-6 overflow-hidden">
+      {/* Header */}
+      <header className="flex items-center justify-between p-6 bg-gradient-to-r from-[#181B20] to-[#23262B] shrink-0">
+        <div className="flex items-center space-x-4">
           <Link
             to="/dashboard/sessions"
-            className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block transition-colors duration-200"
+            className="flex items-center gap-2 text-sm text-[#C0C6D1] hover:text-[#26C6FF] transition duration-150 ease-in-out"
           >
-            ← Back to sessions
+            <ArrowLeft className="h-4 w-4" />
+            Back
           </Link>
-          <h1 className="text-2xl font-semibold">Session {id}</h1>
-          <p className="text-muted-foreground mt-1">
-            {displaySession.agentName ?? 'Unknown agent'} ·{' '}
-            <span className={cn(
-              'capitalize',
-              displaySession.status === 'completed' && 'text-[rgb(var(--success))]',
-              displaySession.status === 'active' && 'text-primary'
-            )}>
+          <div className="flex items-center gap-4">
+            <span className="text-lg font-semibold">Session {id}</span>
+            <span className="text-sm text-[#C0C6D1]">
+              {displaySession.agentName ?? 'Unknown agent'}
+            </span>
+            <span
+              className={`px-2 py-1 rounded-full text-sm ${
+                displaySession.status === 'completed'
+                  ? 'bg-[#00FF66] text-[#181B20]'
+                  : displaySession.status === 'active'
+                    ? 'bg-[#26C6FF] text-[#181B20]'
+                    : 'bg-[#FFD600] text-[#181B20]'
+              }`}
+            >
               {displaySession.status}
             </span>
-            {' · '}
-            {new Date(displaySession.createdAt).toLocaleString()}
-          </p>
+            <span className="text-sm text-[#C0C6D1]">
+              {new Date(displaySession.createdAt).toLocaleString()}
+            </span>
+          </div>
         </div>
-        <SessionActions
-          onCopyTranscript={handleCopyTranscript}
-          onExportJson={handleExportJson}
-          onExportCsv={handleExportCsv}
-          onResendWebhook={handleResendWebhook}
-          isResendingWebhook={resendWebhook.isPending}
-        />
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div id="session-transcript" className="scroll-mt-6">
-          <SessionTranscript
-            messages={displaySession.messages}
-            onCopy={handleCopyTranscript}
-          />
-        </div>
+      {/* Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <aside className="hidden md:flex flex-col w-16 bg-[#181B20] shrink-0 items-center pt-4">
+          <Link
+            to="/dashboard/sessions"
+            className="p-2 rounded-lg text-[#C0C6D1] hover:bg-[#23262B] hover:text-[#26C6FF] transition duration-150 ease-in-out"
+            aria-label="Back to sessions"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </aside>
 
-        <div className="space-y-6">
-          <SessionExtractedData
-            capturedFields={displaySession.capturedFields}
-            notes={localNotes}
-            isReviewed={!!displaySession.reviewedAt}
-            onNotesChange={setLocalNotes}
+        {/* Content Area */}
+        <div className="flex-1 flex flex-col overflow-y-auto p-6">
+          <div
+            id="session-transcript"
+            className="flex flex-col space-y-6 md:grid md:grid-cols-2 md:gap-6 lg:grid-cols-3"
+          >
+            {/* Transcript Panel */}
+            <div className="md:col-span-2 lg:col-span-2">
+              <SessionTranscript
+                messages={displaySession.messages}
+                onCopy={handleCopyTranscript}
+                onCopyMessage={handleCopyMessage}
+                emptyStateCta={{
+                  label: 'View conversation',
+                  onClick: () =>
+                    document
+                      .getElementById('session-transcript')
+                      ?.scrollIntoView({ behavior: 'smooth' }),
+                }}
+              />
+            </div>
+
+            {/* Structured Fields Panel */}
+            <div>
+              <SessionExtractedData
+                capturedFields={displaySession.capturedFields}
+                notes={localNotes}
+                isReviewed={!!displaySession.reviewedAt}
+                onNotesChange={setLocalNotes}
+                onMarkReviewed={handleMarkReviewed}
+                isMarkingReviewed={markReviewed.isPending}
+                emptyStateCta={{
+                  label: 'View conversation',
+                  onClick: () =>
+                    document
+                      .getElementById('session-transcript')
+                      ?.scrollIntoView({ behavior: 'smooth' }),
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Actions Panel */}
+          <SessionActions
+            onCopyTranscript={handleCopyTranscript}
+            onExportJson={handleExportJson}
+            onExportCsv={handleExportCsv}
+            onResendWebhook={handleResendWebhook}
+            onAssignOwner={() => setAssignOwnerOpen(true)}
+            onAddNotes={() => setAddNotesOpen(true)}
             onMarkReviewed={handleMarkReviewed}
+            isResendingWebhook={resendWebhook.isPending}
             isMarkingReviewed={markReviewed.isPending}
-            emptyStateCta={{
-              label: 'View conversation',
-              onClick: () =>
-                document.getElementById('session-transcript')?.scrollIntoView({ behavior: 'smooth' }),
+            isReviewed={!!displaySession.reviewedAt}
+          />
+
+          {/* Audit Trail Panel */}
+          <AuditTrailPanel logs={auditLogs} onRetry={() => refetch()} />
+
+          {/* Related Sessions / Visitor Info Panel */}
+          <RelatedSessionsPanel
+            visitorInfo={{
+              ip: displaySession.visitorMetadata?.ip,
+              referrer: displaySession.visitorMetadata?.referrer,
+              userAgent: displaySession.visitorMetadata?.userAgent,
             }}
           />
-          <SessionMetadata
-            status={displaySession.status}
-            createdAt={displaySession.createdAt}
-            completedAt={displaySession.completedAt}
-            reviewedAt={displaySession.reviewedAt}
-            visitorMetadata={displaySession.visitorMetadata}
-          />
         </div>
       </div>
+
+      {/* Assign to Owner Dialog */}
+      <Dialog open={assignOwnerOpen} onOpenChange={setAssignOwnerOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign to Owner</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="owner-email">Owner email</Label>
+              <Input
+                id="owner-email"
+                type="email"
+                placeholder="owner@example.com"
+                value={assignOwnerEmail}
+                onChange={(e) => setAssignOwnerEmail(e.target.value)}
+                className="bg-[#181B20] border-[#31343A]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setAssignOwnerOpen(false)}
+              className="bg-[#23262B] hover:bg-[#26C6FF]"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAssignOwner}>Assign</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Notes Dialog */}
+      <Dialog open={addNotesOpen} onOpenChange={setAddNotesOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Notes</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="notes-dialog">Notes</Label>
+              <textarea
+                id="notes-dialog"
+                value={localNotes}
+                onChange={(e) => setLocalNotes(e.target.value)}
+                placeholder="Add notes for this session..."
+                rows={4}
+                className="w-full rounded-lg border border-[#31343A] bg-[#181B20] px-4 py-2 text-white placeholder:text-[#C0C6D1] focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setAddNotesOpen(false)}
+              className="bg-[#23262B] hover:bg-[#26C6FF]"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAddNotes}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

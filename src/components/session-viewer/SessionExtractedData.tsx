@@ -1,11 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Database, MessageSquare } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import type { CapturedField } from '@/types'
 
 export interface EmptyStateCta {
@@ -41,123 +38,102 @@ export function SessionExtractedData({
   emptyStateCta = DEFAULT_EMPTY_CTA,
 }: SessionExtractedDataProps) {
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold flex items-center gap-2 text-card-foreground">
-          <Database className="h-5 w-5 text-primary" aria-hidden />
-          Extracted Data
-        </CardTitle>
-        <CardDescription className="text-muted-foreground">
-          Captured and validated field values
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          {capturedFields.length === 0 ? (
-            <div
-              className="flex flex-col items-center justify-center py-12 text-center rounded-lg border border-dashed border-border bg-muted/30"
-              role="status"
-              aria-label="No extracted data"
+    <div className="flex-1 p-6 bg-[#23262B] rounded-lg shadow-md mt-6">
+      <h2 className="text-xl font-semibold mb-4">Structured Fields</h2>
+
+      {capturedFields.length === 0 ? (
+        <div
+          className="flex flex-col items-center justify-center py-12 text-center"
+          role="status"
+        >
+          <Database className="h-12 w-12 text-[#C0C6D1] mb-4" />
+          <p className="text-lg font-semibold mt-4 text-white">
+            No fields captured
+          </p>
+          <p className="text-sm text-[#C0C6D1] mt-2 max-w-[240px]">
+            This session has no extracted structured data. View the conversation
+            to see what was discussed.
+          </p>
+          {emptyStateCta.to ? (
+            <Button
+              asChild
+              className="mt-4 px-4 py-2 bg-[#26C6FF] rounded-lg text-white hover:bg-[#00FF66] transition duration-150 ease-in-out"
             >
-              <Database
-                className="h-12 w-12 text-muted-foreground mb-4"
-                aria-hidden
-              />
-              <p className="text-sm font-medium text-muted-foreground">
-                No fields captured
-              </p>
-              <p className="text-xs text-muted-foreground mt-1 mb-4 max-w-[240px]">
-                This session has no extracted structured data. View the conversation to see what was discussed.
-              </p>
-              {emptyStateCta.to ? (
-                <Button
-                  asChild
-                  variant="default"
-                  size="sm"
-                  className="gap-2 transition-all duration-200 hover:scale-[1.02]"
-                >
-                  <Link to={emptyStateCta.to}>
-                    <MessageSquare className="h-4 w-4" aria-hidden />
-                    {emptyStateCta.label}
-                  </Link>
-                </Button>
-              ) : emptyStateCta.onClick ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={emptyStateCta.onClick}
-                  className="gap-2 transition-all duration-200 hover:scale-[1.02]"
-                >
-                  <MessageSquare className="h-4 w-4" aria-hidden />
-                  {emptyStateCta.label}
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  variant="default"
-                  size="sm"
-                  className="gap-2 transition-all duration-200 hover:scale-[1.02]"
-                >
-                  <Link to="/dashboard/sessions">{emptyStateCta.label}</Link>
-                </Button>
-              )}
-            </div>
+              <Link to={emptyStateCta.to}>{emptyStateCta.label}</Link>
+            </Button>
+          ) : emptyStateCta.onClick ? (
+            <Button
+              className="mt-4 px-4 py-2 bg-[#26C6FF] rounded-lg text-white hover:bg-[#00FF66] transition duration-150 ease-in-out"
+              onClick={emptyStateCta.onClick}
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              {emptyStateCta.label}
+            </Button>
           ) : (
-            capturedFields.map((field, i) => {
-              const fieldId = `extracted-field-${field.fieldId ?? i}`
-              const fieldLabel = `Field ${i + 1}${field.type ? ` (${field.type})` : ''}`
-              return (
-                <div key={field.fieldId ?? i} className="space-y-2">
-                  <Label
-                    htmlFor={fieldId}
-                    className="text-muted-foreground"
-                  >
-                    Field {i + 1}
-                    {field.type && (
-                      <span className="ml-2 text-xs font-normal">({field.type})</span>
-                    )}
-                  </Label>
-                  <Input
-                    id={fieldId}
-                    value={String(field.validatedValue ?? '')}
-                    readOnly
-                    className="font-mono bg-muted/50"
-                    aria-label={fieldLabel}
-                  />
-                </div>
-              )
-            })
+            <Button
+              asChild
+              className="mt-4 px-4 py-2 bg-[#26C6FF] rounded-lg text-white hover:bg-[#00FF66] transition duration-150 ease-in-out"
+            >
+              <Link to="/dashboard/sessions">{emptyStateCta.label}</Link>
+            </Button>
           )}
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor={NOTES_INPUT_ID}>Internal Notes</Label>
-          <Textarea
-            id={NOTES_INPUT_ID}
-            placeholder="Add internal notes for QA or audit..."
-            rows={3}
-            value={notes}
-            onChange={(e) => onNotesChange?.(e.target.value)}
-            className="resize-none"
-            aria-label="Internal notes for QA or audit"
-          />
+      ) : (
+        <div className="space-y-4">
+          {capturedFields.map((field, i) => (
+            <div
+              key={field.fieldId ?? i}
+              className="flex items-center justify-between gap-4"
+            >
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-medium">
+                  Field {i + 1}
+                  {field.type && (
+                    <span className="ml-2 text-xs font-normal text-[#C0C6D1]">
+                      ({field.type})
+                    </span>
+                  )}
+                </span>
+                <span className="text-sm text-[#C0C6D1] truncate">
+                  {String(field.validatedValue ?? '—')}
+                </span>
+              </div>
+              {field.validationWarning && (
+                <span className="text-xs text-[#FFD600] shrink-0">
+                  {field.validationWarning}
+                </span>
+              )}
+            </div>
+          ))}
         </div>
+      )}
 
-        {onMarkReviewed && (
-          <Button
-            variant={isReviewed ? 'secondary' : 'default'}
-            className={cn(
-              'w-full transition-all duration-200 hover:scale-[1.01]',
-              isReviewed && 'opacity-75'
-            )}
-            onClick={onMarkReviewed}
-            disabled={isMarkingReviewed || isReviewed}
-            aria-label={isReviewed ? 'Session reviewed' : 'Mark session as reviewed'}
-          >
-            {isMarkingReviewed ? 'Marking...' : isReviewed ? 'Reviewed' : 'Mark as reviewed'}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+      <div className="mt-6 space-y-2">
+        <Label htmlFor={NOTES_INPUT_ID} className="text-sm font-medium">
+          Internal Notes
+        </Label>
+        <Textarea
+          id={NOTES_INPUT_ID}
+          placeholder="Add internal notes for QA or audit..."
+          rows={3}
+          value={notes}
+          onChange={(e) => onNotesChange?.(e.target.value)}
+          className="resize-none bg-[#181B20] border-[#31343A] text-white placeholder:text-[#C0C6D1] focus:ring-[#26C6FF]"
+          aria-label="Internal notes for QA or audit"
+        />
+      </div>
+
+      {onMarkReviewed && (
+        <Button
+          variant={isReviewed ? 'secondary' : 'default'}
+          className="mt-4 w-full px-4 py-2 bg-[#23262B] rounded-lg shadow-md hover:bg-[#26C6FF] transition duration-150 ease-in-out disabled:opacity-75"
+          onClick={onMarkReviewed}
+          disabled={isMarkingReviewed || isReviewed}
+          aria-label={isReviewed ? 'Session reviewed' : 'Mark session as reviewed'}
+        >
+          {isMarkingReviewed ? 'Marking...' : isReviewed ? 'Reviewed' : 'Mark as reviewed'}
+        </Button>
+      )}
+    </div>
   )
 }
