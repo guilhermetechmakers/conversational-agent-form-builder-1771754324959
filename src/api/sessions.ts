@@ -50,3 +50,35 @@ export async function resendSessionWebhook(sessionId: string): Promise<{
 }> {
   return api.post(`/sessions/${sessionId}/resend-webhook`, { sessionId })
 }
+
+export interface ListSessionsParams {
+  agentId?: string
+  status?: 'active' | 'completed' | 'abandoned'
+  from?: string
+  to?: string
+  limit?: number
+  offset?: number
+}
+
+export interface ListSessionsResponse {
+  sessions: SessionRecord[]
+  total: number
+}
+
+export async function listSessions(params?: ListSessionsParams): Promise<ListSessionsResponse> {
+  const searchParams = new URLSearchParams()
+  if (params?.agentId) searchParams.set('agentId', params.agentId)
+  if (params?.status) searchParams.set('status', params.status)
+  if (params?.from) searchParams.set('from', params.from)
+  if (params?.to) searchParams.set('to', params.to)
+  if (params?.limit) searchParams.set('limit', String(params.limit))
+  if (params?.offset) searchParams.set('offset', String(params.offset))
+  const query = searchParams.toString()
+  const r = await api.get<{ sessions: SessionRecord[]; total: number }>(
+    `/sessions${query ? `?${query}` : ''}`
+  )
+  return {
+    sessions: r.sessions ?? [],
+    total: r.total ?? 0,
+  }
+}

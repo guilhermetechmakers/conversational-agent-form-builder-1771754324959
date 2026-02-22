@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Bot,
@@ -9,24 +9,9 @@ import {
   HelpCircle,
   ChevronLeft,
   ChevronRight,
-  Plus,
-  Search,
-  Menu,
-  User,
-  LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { useAuth } from '@/hooks/useAuth'
+import { TopNavbar } from '@/components/dashboard'
 import { cn } from '@/lib/utils'
 
 const SIDEBAR_STORAGE_KEY = 'dashboard-sidebar-collapsed'
@@ -41,7 +26,7 @@ const navItems = [
 ]
 
 export function DashboardLayout() {
-  const { user, logout } = useAuth()
+  const [searchQuery, setSearchQuery] = useState('')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try {
       return localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true'
@@ -50,9 +35,7 @@ export function DashboardLayout() {
     }
   })
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const location = useLocation()
-  const navigate = useNavigate()
 
   const toggleSidebar = () => {
     const next = !sidebarCollapsed
@@ -168,75 +151,11 @@ export function DashboardLayout() {
 
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
-        {/* Top navbar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background px-4 md:px-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <div className="flex flex-1 items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search agents, sessions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Button
-              asChild
-              className="shrink-0"
-            >
-              <Link to="/dashboard/agents/new">
-                <Plus className="h-4 w-4" />
-                Create Agent
-              </Link>
-            </Button>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatarUrl} alt={user?.name ?? 'User'} />
-                  <AvatarFallback>
-                    {user?.name?.slice(0, 1).toUpperCase() ?? user?.email?.slice(0, 1).toUpperCase() ?? 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div className="flex flex-col">
-                  <span>{user?.name ?? 'Account'}</span>
-                  {user?.email && (
-                    <span className="text-xs font-normal text-muted-foreground">{user.email}</span>
-                  )}
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/dashboard/settings')}>
-                <User className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  logout()
-                  navigate('/login')
-                }}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </header>
+        <TopNavbar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onMobileMenuOpen={() => setMobileOpen(true)}
+        />
 
         <main className="flex-1 p-4 md:p-6 overflow-auto">
           <Outlet />

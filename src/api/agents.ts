@@ -115,3 +115,48 @@ export async function publishAgent(id: string): Promise<Agent> {
   const r = await api.post<AgentRecord>(`/agents/${id}/publish`)
   return recordToAgent(r)
 }
+
+export interface AgentListItem extends Agent {
+  sessionsCount: number
+  conversionRate: number
+}
+
+export interface ListAgentsParams {
+  status?: 'draft' | 'published'
+  tags?: string[]
+  search?: string
+  limit?: number
+  offset?: number
+}
+
+export interface ListAgentsResponse {
+  agents: AgentListItem[]
+  total: number
+}
+
+export async function listAgents(params?: ListAgentsParams): Promise<ListAgentsResponse> {
+  const searchParams = new URLSearchParams()
+  if (params?.status) searchParams.set('status', params.status)
+  if (params?.tags?.length) searchParams.set('tags', params.tags.join(','))
+  if (params?.search) searchParams.set('search', params.search)
+  if (params?.limit) searchParams.set('limit', String(params.limit))
+  if (params?.offset) searchParams.set('offset', String(params.offset))
+  const query = searchParams.toString()
+  const r = await api.get<{ agents: AgentRecord[]; total: number }>(
+    `/agents${query ? `?${query}` : ''}`
+  )
+  const agents: AgentListItem[] = (r.agents ?? []).map((rec) => {
+    const agent = recordToAgent(rec)
+    const item = rec as AgentRecord & { sessions_count?: number; conversion_rate?: number }
+    return {
+      ...agent,
+      sessionsCount: item.sessions_count ?? 0,
+      conversionRate: item.conversion_rate ?? 0,
+    }
+  })
+  return { agents, total: r.total ?? agents.length }
+}
+
+export async function deleteAgent(id: string): Promise<void> {
+  await api.delete(`/agents/${id}`)
+}

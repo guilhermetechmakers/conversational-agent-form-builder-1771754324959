@@ -97,3 +97,13 @@ export interface User {
   avatarUrl?: string
   role: 'owner' | 'admin' | 'editor' | 'viewer'
 }
+
+export interface Dashboard {
+  id: string
+  user_id: string
+  title: string
+  description?: string
+  status: string
+  created_at: string
+  updated_at: string
+}
