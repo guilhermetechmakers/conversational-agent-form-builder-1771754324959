@@ -47,6 +47,9 @@
     /* Shadow tokens */
     --shadow-dropdown: 0 10px 15px -3px rgba(0, 0, 0, 0.25),
       0 4px 6px -4px rgba(0, 0, 0, 0.2);
+    /* Opacity tokens */
+    --opacity-disabled: 0.5;
+    --opacity-loading: 0.7;
   }
 
   * {
