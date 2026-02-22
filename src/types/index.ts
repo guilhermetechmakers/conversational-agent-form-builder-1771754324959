@@ -86,6 +86,8 @@ export interface Session {
   }
   createdAt: string
   completedAt?: string
+  reviewedAt?: string
+  notes?: string
 }
 
 export interface User {
