@@ -29,6 +29,10 @@ import {
 import type { AgentListItem } from '@/api/agents'
 import { cn } from '@/lib/utils'
 
+/** Consistent icon sizes: small for actions, large for empty/error states */
+const ICON_SIZE_SM = 'h-4 w-4'
+const ICON_SIZE_LG = 'h-16 w-16'
+
 export interface AgentListProps {
   agents?: AgentListItem[]
   isLoading?: boolean
@@ -42,22 +46,26 @@ export interface AgentListProps {
 function AgentListSkeleton() {
   return (
     <div
-      className="flex-1 bg-card rounded-lg shadow-md p-6 overflow-hidden"
+      className="flex-1 bg-card rounded-lg shadow-card p-6 overflow-hidden border border-border"
       role="status"
       aria-label="Loading agents"
+      aria-busy="true"
     >
       <div className="space-y-4 animate-fade-in">
         <div className="flex justify-between items-center">
-          <Skeleton className="h-6 w-32" />
-          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-6 w-32 skeleton-shimmer" />
+          <Skeleton className="h-4 w-24 skeleton-shimmer" />
         </div>
         <div className="space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-center gap-4 py-3 border-b border-border last:border-b-0">
-              <Skeleton className="h-5 w-40 rounded-md" />
-              <Skeleton className="h-4 w-16 rounded-md" />
-              <Skeleton className="h-4 w-12 rounded-md" />
-              <Skeleton className="h-5 w-20 rounded-full ml-auto" />
+            <div
+              key={i}
+              className="flex items-center gap-4 py-3 border-b border-border last:border-b-0"
+            >
+              <Skeleton className="h-5 w-40 rounded-md skeleton-shimmer" />
+              <Skeleton className="h-4 w-16 rounded-md skeleton-shimmer" />
+              <Skeleton className="h-4 w-12 rounded-md skeleton-shimmer" />
+              <Skeleton className="h-5 w-20 rounded-full ml-auto skeleton-shimmer" />
             </div>
           ))}
         </div>
@@ -75,13 +83,14 @@ function AgentListError({
 }) {
   return (
     <div
-      className="flex-1 bg-card rounded-lg shadow-md p-6 flex flex-col items-center justify-center min-h-[320px] animate-fade-in"
+      className="flex-1 bg-card rounded-lg shadow-card p-6 flex flex-col items-center justify-center min-h-[320px] animate-fade-in border border-border"
       role="alert"
       aria-live="assertive"
+      aria-label="Error loading agents"
     >
       <div className="rounded-full bg-destructive/10 p-5 mb-6 ring-4 ring-destructive/5">
         <AlertCircle
-          className="h-16 w-16 text-destructive"
+          className={cn(ICON_SIZE_LG, 'text-destructive')}
           aria-hidden
         />
       </div>
@@ -108,13 +117,14 @@ function AgentListError({
 function AgentListEmpty() {
   return (
     <div
-      className="flex-1 bg-card rounded-lg shadow-md p-6 flex flex-col items-center justify-center min-h-[320px] animate-fade-in"
+      className="flex-1 bg-card rounded-lg shadow-card p-6 flex flex-col items-center justify-center min-h-[320px] animate-fade-in border border-border"
       role="status"
       aria-live="polite"
+      aria-label="No agents created yet"
     >
       <div className="rounded-full bg-primary/10 p-6 mb-6 ring-4 ring-primary/5">
         <Bot
-          className="h-16 w-16 text-primary"
+          className={cn(ICON_SIZE_LG, 'text-primary')}
           aria-hidden
         />
       </div>
@@ -131,7 +141,7 @@ function AgentListEmpty() {
       <Button
         asChild
         aria-label="Create your first agent"
-        className="bg-primary text-primary-foreground font-medium rounded-full px-6 py-3 transition-all duration-200 hover:scale-[1.02] hover:shadow-glow"
+        className="font-medium rounded-full px-6 py-3 transition-all duration-200"
       >
         <Link to="/dashboard/agents/new">Create your first agent</Link>
       </Button>
@@ -168,9 +178,11 @@ export function AgentList({
   return (
     <div
       className={cn(
-        'flex-1 bg-card rounded-lg shadow-md p-6 overflow-hidden',
+        'flex-1 bg-card rounded-lg shadow-card p-6 overflow-hidden border border-border',
         className
       )}
+      role="region"
+      aria-label="Agents list"
     >
       <div className="overflow-x-auto">
         {/* Desktop: Table */}
@@ -178,19 +190,19 @@ export function AgentList({
           <Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="py-2 text-muted-foreground font-medium">
+                <TableHead scope="col" className="py-2 text-muted-foreground font-medium">
                   Agent
                 </TableHead>
-                <TableHead className="py-2 text-muted-foreground font-medium">
+                <TableHead scope="col" className="py-2 text-muted-foreground font-medium">
                   Sessions
                 </TableHead>
-                <TableHead className="py-2 text-muted-foreground font-medium">
+                <TableHead scope="col" className="py-2 text-muted-foreground font-medium">
                   Conversion
                 </TableHead>
-                <TableHead className="py-2 text-muted-foreground font-medium">
+                <TableHead scope="col" className="py-2 text-muted-foreground font-medium">
                   Status
                 </TableHead>
-                <TableHead className="py-2 text-muted-foreground font-medium text-right">
+                <TableHead scope="col" className="py-2 text-muted-foreground font-medium text-right">
                   Actions
                 </TableHead>
               </TableRow>
@@ -223,6 +235,7 @@ export function AgentList({
                         agent.status === 'published' &&
                           'bg-success/20 text-success border-0'
                       )}
+                      aria-label={`Status: ${agent.status}`}
                     >
                       {agent.status}
                     </Badge>
@@ -234,10 +247,10 @@ export function AgentList({
                           variant="ghost"
                           size="sm"
                           className="text-primary hover:text-secondary-accent hover:bg-transparent transition-colors"
-                          aria-label={`Actions for agent ${agent.name}`}
+                          aria-label={`Open actions menu for agent ${agent.name}`}
                           aria-haspopup="menu"
                         >
-                          <MoreHorizontal className="h-4 w-4" aria-hidden />
+                          <MoreHorizontal className={ICON_SIZE_SM} aria-hidden />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" role="menu">
@@ -246,9 +259,9 @@ export function AgentList({
                             to={`/chat/${agent.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={`Open agent ${agent.name} in new tab`}
+                            aria-label={`Open agent ${agent.name} chat in new tab`}
                           >
-                            <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
+                            <ExternalLink className={cn('mr-2', ICON_SIZE_SM)} aria-hidden />
                             Open
                           </Link>
                         </DropdownMenuItem>
@@ -257,7 +270,7 @@ export function AgentList({
                             to={`/dashboard/agents/${agent.id}`}
                             aria-label={`Edit agent ${agent.name}`}
                           >
-                            <Pencil className="mr-2 h-4 w-4" aria-hidden />
+                            <Pencil className={cn('mr-2', ICON_SIZE_SM)} aria-hidden />
                             Edit
                           </Link>
                         </DropdownMenuItem>
@@ -267,9 +280,9 @@ export function AgentList({
                             navigator.clipboard.writeText(url)
                             toast.success('Link copied to clipboard')
                           }}
-                          aria-label={`Share link for agent ${agent.name}`}
+                          aria-label={`Copy share link for agent ${agent.name}`}
                         >
-                          <Share2 className="mr-2 h-4 w-4" aria-hidden />
+                          <Share2 className={cn('mr-2', ICON_SIZE_SM)} aria-hidden />
                           Share Link
                         </DropdownMenuItem>
                         {onDelete && (
@@ -278,7 +291,7 @@ export function AgentList({
                             onClick={() => onDelete(agent)}
                             aria-label={`Delete agent ${agent.name}`}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" aria-hidden />
+                            <Trash2 className={cn('mr-2', ICON_SIZE_SM)} aria-hidden />
                             Delete
                           </DropdownMenuItem>
                         )}
@@ -292,19 +305,20 @@ export function AgentList({
         </div>
 
         {/* Mobile: Cards */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-4" role="list" aria-label="Agent cards">
           {agents.map((agent) => (
             <div
               key={agent.id}
-              className="flex items-center justify-between rounded-xl border border-border p-4 transition-all duration-200 hover:border-primary/50 hover:shadow-card"
+              role="listitem"
+              className="flex items-center justify-between rounded-xl border border-border p-4 transition-all duration-200 hover:border-primary/50 hover:shadow-card-hover"
             >
               <Link
                 to={`/dashboard/agents/${agent.id}`}
                 className="flex flex-1 min-w-0 items-center gap-3"
                 aria-label={`View and edit agent ${agent.name}`}
               >
-                <div className="rounded-lg bg-primary/10 p-2 shrink-0">
-                  <Bot className="h-5 w-5 text-primary" />
+                <div className="rounded-lg bg-primary/10 p-2 shrink-0" aria-hidden>
+                  <Bot className={cn(ICON_SIZE_SM, 'text-primary')} aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{agent.name}</p>
@@ -321,6 +335,7 @@ export function AgentList({
                     agent.status === 'published' &&
                       'bg-success/20 text-success border-0'
                   )}
+                  aria-label={`Status: ${agent.status}`}
                 >
                   {agent.status}
                 </Badge>
@@ -330,10 +345,10 @@ export function AgentList({
                       variant="ghost"
                       size="icon"
                       className="h-9 w-9 text-primary hover:text-secondary-accent"
-                      aria-label={`Actions for agent ${agent.name}`}
+                      aria-label={`Open actions menu for agent ${agent.name}`}
                       aria-haspopup="menu"
                     >
-                      <MoreHorizontal className="h-4 w-4" aria-hidden />
+                      <MoreHorizontal className={ICON_SIZE_SM} aria-hidden />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" role="menu">
@@ -342,9 +357,9 @@ export function AgentList({
                         to={`/chat/${agent.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`Open agent ${agent.name} in new tab`}
+                        aria-label={`Open agent ${agent.name} chat in new tab`}
                       >
-                        <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
+                        <ExternalLink className={cn('mr-2', ICON_SIZE_SM)} aria-hidden />
                         Open
                       </Link>
                     </DropdownMenuItem>
@@ -353,7 +368,7 @@ export function AgentList({
                         to={`/dashboard/agents/${agent.id}`}
                         aria-label={`Edit agent ${agent.name}`}
                       >
-                        <Pencil className="mr-2 h-4 w-4" aria-hidden />
+                        <Pencil className={cn('mr-2', ICON_SIZE_SM)} aria-hidden />
                         Edit
                       </Link>
                     </DropdownMenuItem>
@@ -363,9 +378,9 @@ export function AgentList({
                         navigator.clipboard.writeText(url)
                         toast.success('Link copied to clipboard')
                       }}
-                      aria-label={`Share link for agent ${agent.name}`}
+                      aria-label={`Copy share link for agent ${agent.name}`}
                     >
-                      <Share2 className="mr-2 h-4 w-4" aria-hidden />
+                      <Share2 className={cn('mr-2', ICON_SIZE_SM)} aria-hidden />
                       Share Link
                     </DropdownMenuItem>
                     {onDelete && (
@@ -374,7 +389,7 @@ export function AgentList({
                         onClick={() => onDelete(agent)}
                         aria-label={`Delete agent ${agent.name}`}
                       >
-                        <Trash2 className="mr-2 h-4 w-4" aria-hidden />
+                        <Trash2 className={cn('mr-2', ICON_SIZE_SM)} aria-hidden />
                         Delete
                       </DropdownMenuItem>
                     )}
