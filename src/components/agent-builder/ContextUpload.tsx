@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react'
-import { FileText, Upload, Link2, Sparkles, X, Loader2 } from 'lucide-react'
+import { FileText, Upload, Link2, Sparkles, X, Loader2, FileStack, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 export interface ContextUploadProps {
   faq: string
@@ -20,6 +21,108 @@ export interface ContextUploadProps {
 
 const ACCEPTED_MIME = 'application/pdf,text/markdown'
 
+function EmptyStateFiles({
+  onUploadClick,
+  isUploading,
+}: {
+  onUploadClick: () => void
+  isUploading: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center rounded-lg border border-border bg-muted/30 px-4 py-8 text-center animate-fade-in',
+        'min-h-[120px] sm:min-h-[140px]'
+      )}
+      role="status"
+      aria-label="No files uploaded"
+    >
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+        <FileStack className="h-6 w-6 text-muted-foreground" aria-hidden />
+      </div>
+      <p className="mb-1 text-sm font-medium text-foreground">No files yet</p>
+      <p className="mb-4 max-w-[240px] text-xs text-muted-foreground">
+        Upload PDF or Markdown files to give your agent product docs and reference material.
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={onUploadClick}
+        disabled={isUploading}
+        aria-label="Upload PDF or Markdown files"
+        className="min-h-[44px] min-w-[44px] touch-manipulation"
+      >
+        {isUploading ? (
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+        ) : (
+          <Upload className="h-4 w-4" aria-hidden />
+        )}
+        {isUploading ? 'Uploading...' : 'Upload files'}
+      </Button>
+    </div>
+  )
+}
+
+function EmptyStateUrls({
+  onAddClick,
+  isAdding,
+  urlInput,
+  onUrlInputChange,
+  onKeyDown,
+}: {
+  onAddClick: () => void
+  isAdding: boolean
+  urlInput: string
+  onUrlInputChange: (value: string) => void
+  onKeyDown: (e: React.KeyboardEvent) => void
+}) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center rounded-lg border border-border bg-muted/30 px-4 py-8 text-center animate-fade-in',
+        'min-h-[120px] sm:min-h-[140px]'
+      )}
+      role="status"
+      aria-label="No URLs added"
+    >
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+        <Globe className="h-6 w-6 text-muted-foreground" aria-hidden />
+      </div>
+      <p className="mb-1 text-sm font-medium text-foreground">No URLs yet</p>
+      <p className="mb-4 max-w-[240px] text-xs text-muted-foreground">
+        Add product doc URLs so your agent can reference external documentation.
+      </p>
+      <div className="flex w-full max-w-sm flex-col gap-2 sm:flex-row">
+        <Input
+          value={urlInput}
+          onChange={(e) => onUrlInputChange(e.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder="https://docs.example.com"
+          className="h-11 min-h-[44px] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+          aria-label="URL for product documentation"
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={onAddClick}
+          disabled={!urlInput.trim() || isAdding}
+          aria-label="Add URL"
+          className="min-h-[44px] min-w-[44px] touch-manipulation sm:shrink-0"
+        >
+          {isAdding ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          ) : (
+            <Link2 className="h-4 w-4" aria-hidden />
+          )}
+          {isAdding ? 'Adding...' : 'Add'}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export function ContextUpload({
   faq,
   files,
@@ -32,20 +135,26 @@ export function ContextUpload({
 }: ContextUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [urlInput, setUrlInput] = useState('')
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false)
+  const [isAddingUrl, setIsAddingUrl] = useState(false)
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files
     if (!selected?.length) return
+    setIsUploadingFiles(true)
     const names = Array.from(selected).map((f) => f.name)
     onFilesChange([...files, ...names])
     e.target.value = ''
+    window.setTimeout(() => setIsUploadingFiles(false), 300)
   }
 
   const addUrl = () => {
     const trimmed = urlInput.trim()
     if (trimmed && !urls.includes(trimmed)) {
+      setIsAddingUrl(true)
       onUrlsChange([...urls, trimmed])
       setUrlInput('')
+      window.setTimeout(() => setIsAddingUrl(false), 200)
     }
   }
 
@@ -57,19 +166,27 @@ export function ContextUpload({
     onUrlsChange(urls.filter((u) => u !== url))
   }
 
+  const handleUrlKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addUrl()
+    }
+  }
+
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
+          <FileText className="h-5 w-5 text-primary" />
           Context
         </CardTitle>
         <CardDescription>FAQ, files, and product docs for the agent to reference</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label>FAQ / Context</Label>
+          <Label htmlFor="faq-context">FAQ / Context</Label>
           <Textarea
+            id="faq-context"
             value={faq}
             onChange={(e) => onFaqChange(e.target.value)}
             placeholder="Paste FAQs or product docs for the agent to reference"
@@ -86,73 +203,111 @@ export function ContextUpload({
             multiple
             className="hidden"
             onChange={handleFileSelect}
+            aria-hidden
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Upload PDF or Markdown files"
-          >
-            <Upload className="h-4 w-4" aria-hidden />
-            Upload files
-          </Button>
-          {files.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {files.map((name) => (
-                <Badge key={name} variant="secondary" className="gap-1 pr-1">
-                  {name}
-                  <button
-                    type="button"
-                    onClick={() => removeFile(name)}
-                    className="rounded-full p-0.5 hover:bg-muted-foreground/20"
-                    aria-label={`Remove ${name}`}
+          {files.length > 0 ? (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {files.map((name) => (
+                  <Badge
+                    key={name}
+                    variant="secondary"
+                    className="gap-1 pr-1 transition-all duration-200 hover:shadow-md"
                   >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
+                    {name}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(name)}
+                      className="rounded-full p-0.5 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+                      aria-label={`Remove ${name}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingFiles}
+                aria-label="Upload more PDF or Markdown files"
+                className="min-h-[44px] min-w-[44px] touch-manipulation"
+              >
+                {isUploadingFiles ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Upload className="h-4 w-4" aria-hidden />
+                )}
+                {isUploadingFiles ? 'Uploading...' : 'Upload more'}
+              </Button>
+            </>
+          ) : (
+            <EmptyStateFiles
+              onUploadClick={() => fileInputRef.current?.click()}
+              isUploading={isUploadingFiles}
+            />
           )}
         </div>
         <div className="space-y-2">
           <Label>URL for product doc</Label>
-          <div className="flex gap-2">
-            <Input
-              value={urlInput}
-              onChange={(e) => setUrlInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addUrl())}
-              placeholder="https://docs.example.com"
-              className="transition-all duration-200 focus:ring-2 focus:ring-primary/50"
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={addUrl}
-              disabled={!urlInput.trim()}
-              aria-label="Add URL"
-            >
-              <Link2 className="h-4 w-4" aria-hidden />
-              Add
-            </Button>
-          </div>
-          {urls.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {urls.map((url) => (
-                <Badge key={url} variant="secondary" className="gap-1 pr-1 max-w-full truncate">
-                  <span className="truncate max-w-[200px]">{url}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeUrl(url)}
-                    className="rounded-full p-0.5 hover:bg-muted-foreground/20 shrink-0"
-                    aria-label={`Remove ${url}`}
+          {urls.length > 0 ? (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {urls.map((url) => (
+                  <Badge
+                    key={url}
+                    variant="secondary"
+                    className="max-w-full gap-1 pr-1 truncate transition-all duration-200 hover:shadow-md"
                   >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
+                    <span className="max-w-[200px] truncate sm:max-w-[280px]">{url}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeUrl(url)}
+                      className="shrink-0 rounded-full p-0.5 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+                      aria-label={`Remove ${url}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  onKeyDown={handleUrlKeyDown}
+                  placeholder="https://docs.example.com"
+                  className="h-11 min-h-[44px] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                  aria-label="Add another URL"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={addUrl}
+                  disabled={!urlInput.trim() || isAddingUrl}
+                  aria-label="Add URL"
+                  className="min-h-[44px] min-w-[44px] touch-manipulation sm:shrink-0"
+                >
+                  {isAddingUrl ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : (
+                    <Link2 className="h-4 w-4" aria-hidden />
+                  )}
+                  {isAddingUrl ? 'Adding...' : 'Add'}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <EmptyStateUrls
+              onAddClick={addUrl}
+              isAdding={isAddingUrl}
+              urlInput={urlInput}
+              onUrlInputChange={setUrlInput}
+              onKeyDown={handleUrlKeyDown}
+            />
           )}
         </div>
         {onIndexKnowledge && (
@@ -163,6 +318,7 @@ export function ContextUpload({
             disabled={isIndexing}
             aria-label={isIndexing ? 'Indexing knowledge base' : 'Index knowledge'}
             aria-busy={isIndexing}
+            className="min-h-[44px] touch-manipulation"
           >
             {isIndexing ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -176,4 +332,3 @@ export function ContextUpload({
     </Card>
   )
 }
-
