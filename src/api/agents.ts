@@ -94,6 +94,41 @@ export async function fetchAgent(id: string): Promise<Agent> {
   return recordToAgent(r)
 }
 
+const DEMO_AGENT: Agent = {
+  id: 'demo',
+  name: 'Demo Agent',
+  slug: 'demo',
+  description: 'Try the conversational form',
+  fields: [
+    { id: 'f1', type: 'text', label: "What's your name?", required: true, sampleData: 'John' },
+    { id: 'f2', type: 'email', label: "What's your email?", required: true, sampleData: 'john@example.com' },
+    { id: 'f3', type: 'phone', label: "What's your phone number?", required: false },
+    { id: 'f4', type: 'textarea', label: 'Any additional notes?', required: false },
+  ],
+  persona: { tone: 'friendly', systemInstructions: '' },
+  appearance: { primaryColor: '#26C6FF', accentColor: '#00FF66', theme: 'dark' },
+  status: 'published',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+}
+
+export async function fetchAgentBySlug(slug: string): Promise<Agent | null> {
+  if (slug === 'demo') {
+    return DEMO_AGENT
+  }
+  try {
+    const r = await api.get<AgentRecord>(`/agents/by-slug/${encodeURIComponent(slug)}`)
+    return recordToAgent(r)
+  } catch {
+    try {
+      const { agents } = await listAgents({ status: 'published', limit: 100 })
+      return agents.find((a) => a.slug === slug) ?? null
+    } catch {
+      return null
+    }
+  }
+}
+
 export async function createAgent(payload: AgentPayload): Promise<Agent> {
   const r = await api.post<AgentRecord>('/agents', payloadToBody(payload))
   return recordToAgent(r)

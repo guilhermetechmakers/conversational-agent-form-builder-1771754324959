@@ -1,75 +1,101 @@
-import { useState, useRef, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { Bot, Send, AlertCircle, MessageCircle } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { Bot, Send, MessageCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
+import { useAgentBySlug, getWelcomeMessage } from '@/hooks/usePublicChat'
 import type { Message } from '@/types'
 
-const WELCOME_MESSAGE: Message = {
-  id: '1',
-  sender: 'assistant',
-  content:
-    "Hi! I'm your conversational assistant. I'll help you provide the information we need. What's your name?",
-  timestamp: new Date().toISOString(),
-}
-
-function MessageSkeleton() {
+function ChatSkeleton() {
   return (
-    <div className="flex gap-3 animate-fade-in">
-      <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-48 rounded-lg" />
-        <Skeleton className="h-4 w-32 rounded-lg" />
-      </div>
+    <div className="animate-pulse p-4 space-y-4">
+      <div className="h-10 bg-[#31343A] rounded-lg mb-4" />
+      <div className="h-6 bg-[#31343A] rounded-lg mb-2 w-3/4" />
+      <div className="h-6 bg-[#31343A] rounded-lg mb-2 w-1/2" />
+      <div className="h-6 bg-[#31343A] rounded-lg mb-2 w-2/3" />
+      <div className="h-6 bg-[#31343A] rounded-lg mb-2 w-1/3" />
+      <div className="h-10 bg-[#31343A] rounded-lg mt-8" />
     </div>
   )
 }
 
-function MessagesEmptyState() {
+function MessagesEmptyState({ onStart }: { onStart: () => void }) {
   return (
     <div
-      className="flex flex-col items-center justify-center py-12 px-4 text-center rounded-xl border border-dashed border-border bg-card/30"
+      className="flex flex-col items-center justify-center py-16 px-4 text-center"
       role="status"
       aria-live="polite"
     >
-      <div className="rounded-full bg-muted p-4 mb-4" aria-hidden>
-        <MessageCircle className="h-10 w-10 text-muted-foreground" />
-      </div>
-      <h2 className="font-semibold text-lg mb-2">No messages yet</h2>
-      <p className="text-muted-foreground text-sm max-w-sm">
-        Start the conversation by typing a message below. The assistant will
-        guide you through the form.
+      <MessageCircle
+        className="w-12 h-12 text-[#C0C6D1] mb-4"
+        aria-hidden
+      />
+      <h2 className="text-white text-lg font-semibold mb-2">
+        Start a Conversation
+      </h2>
+      <p className="text-[#C0C6D1] text-sm max-w-sm mb-6">
+        Type a message to begin chatting with our agent.
       </p>
+      <Button
+        onClick={onStart}
+        className="bg-[#26C6FF] text-white p-2 rounded-lg hover:bg-[#26C6FF]/90 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
+      >
+        Start Chatting
+      </Button>
+    </div>
+  )
+}
+
+function ErrorState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 px-4">
+      <div className="bg-[#FFD600] text-black p-3 rounded-lg max-w-md w-full">
+        <span className="block mb-3">Something went wrong. Please try again.</span>
+        <Button
+          onClick={onRetry}
+          className="bg-[#26C6FF] text-white p-2 rounded-lg hover:bg-[#26C6FF]/90 transition-all duration-200"
+        >
+          Retry
+        </Button>
+      </div>
     </div>
   )
 }
 
 export function PublicChatPage() {
   const { slug } = useParams()
+  const navigate = useNavigate()
   const [messages, setMessages] = useState<Message[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
+  const [hasError, setHasError] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
+  const { data: agent, isLoading: agentLoading, error: agentError, refetch } = useAgentBySlug(slug)
+
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  }, [])
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [messages, scrollToBottom])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMessages([WELCOME_MESSAGE])
-      setIsLoading(false)
-    }, 600)
-    return () => clearTimeout(timer)
-  }, [])
+    if (agent && messages.length === 0) {
+      setMessages([getWelcomeMessage(agent)])
+    }
+  }, [agent, messages.length])
+
+  const completedFields = Math.min(
+    messages.filter((m) => m.sender === 'user').length,
+    agent?.fields?.length ?? 4
+  )
+  const totalFields = agent?.fields?.length ?? 4
+  const progressPercent = totalFields > 0 ? (completedFields / totalFields) * 100 : 0
 
   const handleSend = async () => {
     const text = input.trim()
@@ -84,96 +110,136 @@ export function PublicChatPage() {
     setMessages((m) => [...m, userMessage])
     setInput('')
     setIsStreaming(true)
+    setHasError(false)
 
-    // Mock streaming response
-    await new Promise((r) => setTimeout(r, 800))
-    const assistantMessage: Message = {
-      id: crypto.randomUUID(),
-      sender: 'assistant',
-      content: "Thanks! I've got that. Could you share your email address?",
-      timestamp: new Date().toISOString(),
+    try {
+      await new Promise((r) => setTimeout(r, 600 + Math.random() * 400))
+      const nextFieldIndex = completedFields
+      const nextField = agent?.fields?.[nextFieldIndex]
+      const assistantContent = nextField
+        ? `Thanks! I've got that. ${nextField.label || 'Could you share the next piece of information?'}`
+        : "Thanks! I've collected all the information. Is there anything else you'd like to add?"
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        sender: 'assistant',
+        content: assistantContent,
+        timestamp: new Date().toISOString(),
+      }
+      setMessages((m) => [...m, assistantMessage])
+    } catch {
+      setHasError(true)
+      toast.error('Failed to send message')
+    } finally {
+      setIsStreaming(false)
     }
-    setMessages((m) => [...m, assistantMessage])
-    setIsStreaming(false)
-    toast.success('Message sent')
+  }
+
+  const handleEndSession = () => {
+    setMessages([])
+    setInput('')
+    navigate('/')
+    toast.success('Session ended')
+  }
+
+  const isLoading = agentLoading && !agent
+  const showError = (agentError || (!agentLoading && !agent && slug)) && !agent
+
+  if (showError) {
+    return (
+      <div className="flex flex-col h-screen bg-[#181B20]">
+        <header className="flex items-center justify-between p-4 bg-gradient-to-b from-[#181B20] to-[#23262B]">
+          <h1 className="text-white text-lg font-semibold">Agent Chat</h1>
+        </header>
+        <div className="flex-1 overflow-y-auto p-4 bg-[#181B20]">
+          <ErrorState onRetry={() => refetch()} />
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col h-screen bg-[#181B20]">
       {/* Header */}
-      <header className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground"
-          aria-hidden
-        >
-          <Bot className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="font-semibold">Agent {slug ?? 'Chat'}</h1>
-          <p className="text-xs text-muted-foreground">Conversational form</p>
+      <header className="flex items-center justify-between p-4 bg-gradient-to-b from-[#181B20] to-[#23262B]">
+        <div className="flex items-center space-x-4">
+          <Avatar className="w-10 h-10 rounded-full">
+            {agent?.persona?.avatarUrl ? (
+              <AvatarImage src={agent.persona.avatarUrl} alt={agent.name} />
+            ) : null}
+            <AvatarFallback className="bg-[#26C6FF] text-[#181B20]">
+              <Bot className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-white text-lg font-semibold">
+              {agent?.name ?? slug ?? 'Agent'}
+            </h1>
+            <span className="text-[#26C6FF] text-sm">
+              {agent?.appearance?.theme === 'light' ? 'Light' : 'Dark'} theme
+            </span>
+          </div>
         </div>
       </header>
 
-      {/* Progress pill */}
-      <div className="px-4 py-2 border-b border-border">
-        <div className="flex items-center gap-2">
-          <span
-            id="progress-label"
-            className="text-sm text-muted-foreground"
-          >
-            Progress:
-          </span>
-          <div
-            className="flex-1 h-2 rounded-full bg-muted overflow-hidden"
-            role="progressbar"
-            aria-valuenow={25}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-labelledby="progress-label"
-          >
-            <div className="h-full w-1/4 bg-primary rounded-full transition-all duration-300" />
+      {/* Progress / Field Collection Indicator */}
+      {agent && totalFields > 0 && (
+        <div className="px-4 py-2 bg-[#23262B] border-b border-[#31343A]">
+          <div className="flex items-center space-x-2">
+            <div className="w-full bg-[#31343A] h-1 rounded-full overflow-hidden flex-1">
+              <div
+                className="bg-[#26C6FF] h-full rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <span className="text-[#C0C6D1] text-sm whitespace-nowrap">
+              {completedFields}/{totalFields} fields completed
+            </span>
           </div>
-          <span className="text-sm font-medium">1/4 fields</span>
         </div>
-      </div>
+      )}
 
-      {/* Messages */}
+      {/* Chat Viewport */}
       <div
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+        className="flex-1 overflow-y-auto p-4 bg-[#181B20]"
         role="log"
         aria-label="Chat messages"
       >
         {isLoading ? (
-          <div className="space-y-4">
-            <MessageSkeleton />
-            <MessageSkeleton />
-          </div>
+          <ChatSkeleton />
         ) : messages.length === 0 ? (
-          <MessagesEmptyState />
+          <MessagesEmptyState onStart={() => {
+            if (agent) {
+              setMessages([getWelcomeMessage(agent)])
+            }
+          }} />
         ) : (
-          <>
+          <div className="flex flex-col space-y-4">
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={cn(
-                  'flex gap-3 animate-fade-in',
-                  msg.sender === 'user' && 'flex-row-reverse'
+                  'flex animate-fade-in',
+                  msg.sender === 'assistant'
+                    ? 'items-start space-x-2'
+                    : 'items-end justify-end space-x-2 flex-row-reverse'
                 )}
               >
                 {msg.sender === 'assistant' && (
-                  <div
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
-                    aria-hidden
-                  >
-                    <Bot className="h-4 w-4" />
-                  </div>
+                  <Avatar className="w-8 h-8 rounded-full shrink-0">
+                    {agent?.persona?.avatarUrl ? (
+                      <AvatarImage src={agent.persona.avatarUrl} alt="" />
+                    ) : null}
+                    <AvatarFallback className="bg-[#26C6FF] text-[#181B20]">
+                      <Bot className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
                 )}
                 <div
                   className={cn(
-                    'max-w-[80%] rounded-xl px-4 py-2.5',
+                    'p-3 rounded-lg shadow-md max-w-[80%]',
                     msg.sender === 'assistant'
-                      ? 'bg-card border border-border'
-                      : 'bg-primary text-primary-foreground'
+                      ? 'bg-[#23262B] text-white'
+                      : 'bg-[#26C6FF] text-white'
                   )}
                 >
                   <p className="text-sm">{msg.content}</p>
@@ -181,49 +247,70 @@ export function PublicChatPage() {
               </div>
             ))}
             {isStreaming && (
-              <div className="flex gap-3">
-                <div
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
-                  aria-hidden
-                >
-                  <Bot className="h-4 w-4" />
-                </div>
-                <div
-                  className="rounded-xl bg-card border border-border px-4 py-2.5"
-                  aria-live="polite"
-                  aria-label="Assistant is typing"
-                >
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse" />
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse animation-delay-200" />
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse animation-delay-500" />
+              <div className="flex items-center space-x-2" aria-live="polite">
+                <Avatar className="w-8 h-8 rounded-full shrink-0">
+                  <AvatarFallback className="bg-[#26C6FF] text-[#181B20]">
+                    <Bot className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="bg-[#23262B] text-white p-3 rounded-lg shadow-md">
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-[#26C6FF] w-2 h-2 rounded-full animate-pulse" />
+                    <span
+                      className="bg-[#26C6FF] w-2 h-2 rounded-full animate-pulse"
+                      style={{ animationDelay: '200ms' }}
+                    />
+                    <span
+                      className="bg-[#26C6FF] w-2 h-2 rounded-full animate-pulse"
+                      style={{ animationDelay: '400ms' }}
+                    />
                   </div>
                 </div>
+                <span className="text-[#C0C6D1] text-sm">Agent is typing...</span>
               </div>
             )}
-          </>
+            {hasError && (
+              <ErrorState onRetry={() => setHasError(false)} />
+            )}
+            <div ref={messagesEndRef} />
+          </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-border bg-card">
-        <div className="flex gap-2">
+      {/* Message Input */}
+      <div className="sticky bottom-0 bg-[#23262B] p-4">
+        {agent?.fields && agent.fields.length > 0 && messages.length <= 1 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {agent.fields.slice(0, 2).map((f) => (
+              <Button
+                key={f.id}
+                variant="ghost"
+                size="sm"
+                className="bg-[#26C6FF] text-white p-2 rounded-lg hover:bg-[#26C6FF]/90 transition-all duration-200 text-xs"
+                onClick={() => setInput(f.sampleData || f.placeholder || '')}
+              >
+                {f.sampleData || f.label}
+              </Button>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center space-x-2">
           <Input
             id="chat-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Type your message..."
-            disabled={isStreaming}
-            className="flex-1"
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+            placeholder="Type a message..."
+            disabled={isStreaming || isLoading}
+            className="flex-1 bg-[#181B20] text-white p-2 rounded-lg border-[#31343A] placeholder:text-[#C0C6D1] focus:outline-none focus:ring-2 focus:ring-[#26C6FF] transition-all duration-200"
             aria-label="Message input"
             aria-describedby="input-hint"
           />
           <Button
             onClick={handleSend}
-            disabled={!input.trim() || isStreaming}
+            disabled={!input.trim() || isStreaming || isLoading}
             size="icon"
+            className="bg-[#26C6FF] text-white hover:bg-[#26C6FF]/90 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
             aria-label="Send message"
           >
             <Send className="h-4 w-4" aria-hidden />
@@ -235,30 +322,29 @@ export function PublicChatPage() {
       </div>
 
       {/* Footer */}
-      <footer className="px-4 py-2 border-t border-border text-center text-xs text-muted-foreground flex items-center justify-center gap-2 flex-wrap">
-        <AlertCircle className="h-3 w-3 shrink-0" aria-hidden />
+      <footer className="flex items-center justify-between p-4 bg-[#23262B]">
         <Link
           to="/privacy"
-          className="hover:text-foreground transition-colors duration-200"
+          className="text-[#C0C6D1] text-xs hover:text-white transition-colors"
         >
-          Privacy
+          Privacy Notice
         </Link>
-        <span aria-hidden>·</span>
-        <button
-          type="button"
-          className="hover:text-foreground transition-colors duration-200"
-          aria-label="Report abuse"
+        <a
+          href="#"
+          className="text-[#FFD600] text-xs underline hover:text-[#FFD600]/90 transition-colors"
+          onClick={(e) => {
+            e.preventDefault()
+            toast.info('Report submitted')
+          }}
         >
-          Report abuse
-        </button>
-        <span aria-hidden>·</span>
-        <button
-          type="button"
-          className="hover:text-foreground transition-colors duration-200"
-          aria-label="End session"
+          Report Abuse
+        </a>
+        <Button
+          onClick={handleEndSession}
+          className="bg-[#FF0000] text-white p-2 rounded-lg hover:bg-[#FF0000]/90 transition-all duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#26C6FF]"
         >
-          End session
-        </button>
+          End Session
+        </Button>
       </footer>
     </div>
   )
