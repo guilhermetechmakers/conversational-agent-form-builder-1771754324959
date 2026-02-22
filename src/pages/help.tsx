@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Search, Book, Code, MessageCircle, Bot } from 'lucide-react'
+import { Search, Book, Code, MessageCircle, Bot, FileText } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -82,20 +82,39 @@ export function HelpPage() {
           <CardTitle>Popular articles</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {articles.map((article) => (
-              <a
-                key={article.id}
-                href="#"
-                className="flex items-center justify-between rounded-lg border border-border p-3 hover:border-primary/50 transition-colors"
-              >
-                <div>
-                  <p className="font-medium">{article.title}</p>
-                  <p className="text-sm text-muted-foreground">{article.category}</p>
-                </div>
-              </a>
-            ))}
-          </div>
+          {articles.length > 0 ? (
+            <div className="space-y-2">
+              {articles.map((article) => (
+                <a
+                  key={article.id}
+                  href="#"
+                  className="flex items-center justify-between rounded-lg border border-border p-3 hover:border-primary/50 transition-colors"
+                >
+                  <div>
+                    <p className="font-medium">{article.title}</p>
+                    <p className="text-sm text-muted-foreground">{article.category}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div
+              className="flex flex-col items-center justify-center py-12 px-4 text-center"
+              role="status"
+              aria-label="No popular articles available"
+            >
+              <div className="rounded-full bg-muted/50 p-4 mb-4">
+                <FileText className="h-10 w-10 text-muted-foreground" aria-hidden />
+              </div>
+              <h3 className="font-medium text-base mb-1">No popular articles yet</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mb-6">
+                Popular articles will appear here as users explore the documentation. Check out the Quickstart and API reference above to get started.
+              </p>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/">Explore documentation</Link>
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
