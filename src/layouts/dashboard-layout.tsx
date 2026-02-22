@@ -23,7 +23,17 @@ const navItems = [
   { to: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
   { to: '/dashboard/help', icon: HelpCircle, label: 'Help' },
-]
+] as const
+
+const getPageTitleFromPath = (pathname: string): string => {
+  if (pathname === '/dashboard' || pathname === '/dashboard/') return 'Overview'
+  if (pathname.startsWith('/dashboard/agents')) return 'Agents'
+  if (pathname.startsWith('/dashboard/sessions')) return 'Sessions'
+  if (pathname.startsWith('/dashboard/analytics')) return 'Analytics'
+  if (pathname.startsWith('/dashboard/settings')) return 'Settings'
+  if (pathname.startsWith('/dashboard/help')) return 'Help'
+  return 'Dashboard'
+}
 
 export function DashboardLayout() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -155,6 +165,7 @@ export function DashboardLayout() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onMobileMenuOpen={() => setMobileOpen(true)}
+          pageTitle={getPageTitleFromPath(location.pathname)}
         />
 
         <main className="flex-1 p-4 md:p-6 overflow-auto">

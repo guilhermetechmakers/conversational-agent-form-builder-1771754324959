@@ -21,6 +21,8 @@ export interface TopNavbarProps {
   searchQuery: string
   onSearchChange: (value: string) => void
   onMobileMenuOpen?: () => void
+  /** Optional page/section title for heading hierarchy (e.g. "Dashboard", "Agents") */
+  pageTitle?: string
   className?: string
 }
 
@@ -28,6 +30,7 @@ export function TopNavbar({
   searchQuery,
   onSearchChange,
   onMobileMenuOpen,
+  pageTitle = 'Dashboard',
   className,
 }: TopNavbarProps) {
   const { user, logout, isLoading } = useAuth()
@@ -41,6 +44,9 @@ export function TopNavbar({
       )}
       role="banner"
     >
+      <h1 className="sr-only">
+        {pageTitle} - Agent Builder
+      </h1>
       {onMobileMenuOpen && (
         <Button
           variant="ghost"
@@ -66,14 +72,15 @@ export function TopNavbar({
             aria-label="Search agents and sessions"
           />
         </div>
-        <Link
-          to="/dashboard/agents/new"
-          className="shrink-0 inline-flex items-center gap-2 bg-primary text-primary-foreground font-medium rounded-full px-4 py-2 transition-all duration-200 hover:bg-secondary-accent"
-          aria-label="Create new agent"
+        <Button
+          asChild
+          className="shrink-0 rounded-full hover:bg-secondary-accent"
         >
-          <Plus className={ICON_SIZE} aria-hidden />
-          <span className="hidden sm:inline">Create Agent</span>
-        </Link>
+          <Link to="/dashboard/agents/new" aria-label="Create new agent">
+            <Plus className={ICON_SIZE} aria-hidden />
+            <span className="hidden sm:inline">Create Agent</span>
+          </Link>
+        </Button>
       </div>
       <div className="shrink-0">
         {isLoading ? (
