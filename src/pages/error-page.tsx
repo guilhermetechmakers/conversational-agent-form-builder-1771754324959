@@ -14,10 +14,11 @@ export function ErrorPage() {
     <main
       className={cn(
         'min-h-screen flex flex-col items-center justify-center px-4',
-        'bg-background'
+        'bg-gradient-to-br from-background via-background to-muted/20'
       )}
       role="main"
       aria-labelledby="error-heading"
+      aria-describedby="error-description"
     >
       <Card className="w-full max-w-md animate-fade-in border-border bg-card shadow-card">
         <CardHeader className="text-center pb-2">
@@ -25,7 +26,7 @@ export function ErrorPage() {
             className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10"
             aria-hidden
           >
-            <AlertTriangle className="h-10 w-10 text-destructive" />
+            <AlertTriangle className="h-10 w-10 text-destructive" aria-hidden />
           </div>
           <span
             className="text-6xl font-bold tabular-nums text-foreground sm:text-7xl"
@@ -44,20 +45,29 @@ export function ErrorPage() {
           </h2>
         </CardHeader>
         <CardContent className="text-center pb-4">
-          <p className="text-sm text-muted-foreground">
+          <p
+            id="error-description"
+            className="text-sm text-muted-foreground"
+          >
             Please try again later or contact support if the problem persists.
           </p>
         </CardContent>
         <CardFooter className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button asChild className="w-full sm:w-auto">
-            <Link to="/">
-              <Home className="mr-2 h-4 w-4" />
+            <Link
+              to="/"
+              aria-label="Go to home page"
+            >
+              <Home className="mr-2 h-4 w-4" aria-hidden />
               Go home
             </Link>
           </Button>
           <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link to="/dashboard/help">
-              <HelpCircle className="mr-2 h-4 w-4" />
+            <Link
+              to="/dashboard/help"
+              aria-label="Contact support for help"
+            >
+              <HelpCircle className="mr-2 h-4 w-4" aria-hidden />
               Contact support
             </Link>
           </Button>
