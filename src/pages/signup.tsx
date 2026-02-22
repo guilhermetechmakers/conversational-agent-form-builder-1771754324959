@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
+import { signup } from '@/services/auth'
+import { useAuth } from '@/hooks/useAuth'
+import { User, Mail, Lock, Loader2 } from 'lucide-react'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -19,6 +22,7 @@ type FormData = z.infer<typeof schema>
 export function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const { setSession } = useAuth()
 
   const {
     register,
@@ -28,22 +32,23 @@ export function SignupPage() {
     resolver: zodResolver(schema),
   })
 
-  const onSubmit = async (_data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     try {
-      // Mock auth - in production, call API
-      localStorage.setItem('auth_token', 'mock-token')
+      const { user, token } = await signup(data)
+      setSession(user, token)
       toast.success('Account created!')
-      navigate('/dashboard')
-    } catch {
-      toast.error('Something went wrong')
+      navigate('/dashboard', { replace: true })
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: string }).message) : 'Something went wrong'
+      toast.error(msg)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="text-center">
         <h1 className="text-2xl font-semibold">Create account</h1>
         <p className="text-muted-foreground mt-1">
@@ -53,41 +58,63 @@ export function SignupPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            placeholder="Your name"
-            {...register('name')}
-          />
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="name"
+              placeholder="Your name"
+              className="pl-9"
+              autoComplete="name"
+              {...register('name')}
+            />
+          </div>
           {errors.name && (
             <p className="text-sm text-destructive">{errors.name.message}</p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            {...register('email')}
-          />
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              className="pl-9"
+              autoComplete="email"
+              {...register('email')}
+            />
+          </div>
           {errors.email && (
             <p className="text-sm text-destructive">{errors.email.message}</p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            {...register('password')}
-          />
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              className="pl-9"
+              autoComplete="new-password"
+              {...register('password')}
+            />
+          </div>
           {errors.password && (
             <p className="text-sm text-destructive">{errors.password.message}</p>
           )}
         </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? 'Creating account...' : 'Sign up'}
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            'Sign up'
+          )}
         </Button>
       </form>
       <p className="text-center text-sm text-muted-foreground">

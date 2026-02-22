@@ -26,6 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
 const SIDEBAR_STORAGE_KEY = 'dashboard-sidebar-collapsed'
@@ -40,6 +41,7 @@ const navItems = [
 ]
 
 export function DashboardLayout() {
+  const { user, logout } = useAuth()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try {
       return localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true'
@@ -201,13 +203,22 @@ export function DashboardLayout() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="" alt="User" />
-                  <AvatarFallback>U</AvatarFallback>
+                  <AvatarImage src={user?.avatarUrl} alt={user?.name ?? 'User'} />
+                  <AvatarFallback>
+                    {user?.name?.slice(0, 1).toUpperCase() ?? user?.email?.slice(0, 1).toUpperCase() ?? 'U'}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Account</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                <div className="flex flex-col">
+                  <span>{user?.name ?? 'Account'}</span>
+                  {user?.email && (
+                    <span className="text-xs font-normal text-muted-foreground">{user.email}</span>
+                  )}
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate('/dashboard/settings')}>
                 <User className="mr-2 h-4 w-4" />
@@ -216,7 +227,7 @@ export function DashboardLayout() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  localStorage.removeItem('auth_token')
+                  logout()
                   navigate('/login')
                 }}
               >
