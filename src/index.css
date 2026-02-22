@@ -1,68 +1,91 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    /* UI Guide - Dark mode */
+    --background: 24 27 32; /* #181B20 */
+    --foreground: 255 255 255; /* #FFFFFF */
+    --card: 35 38 43; /* #23262B */
+    --card-foreground: 255 255 255;
+    --primary: 38 198 255; /* #26C6FF */
+    --primary-foreground: 24 27 32;
+    --secondary: 35 38 43; /* #23262B */
+    --secondary-foreground: 192 198 209; /* #C0C6D1 */
+    --accent: 38 198 255; /* #26C6FF */
+    --accent-foreground: 24 27 32;
+    --secondary-accent: 0 255 102; /* #00FF66 */
+    --muted: 49 52 58; /* #31343A */
+    --muted-foreground: 192 198 209; /* #C0C6D1 */
+    --border: 49 52 58; /* #31343A */
+    --input: 49 52 58;
+    --ring: 38 198 255;
+    --destructive: 239 68 68;
+    --success: 0 255 102; /* #00FF66 */
+    --notification: 255 214 0; /* #FFD600 */
+    --overlay: 35 38 43 0.8; /* #23262BCC */
   }
-  a:hover {
-    color: #747bff;
+
+  * {
+    @apply border-border;
   }
-  button {
-    background-color: #f9f9f9;
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  .card-hover:hover {
+    @apply shadow-card-hover;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground rounded-lg px-4 py-2 font-medium;
+    @apply transition-all duration-200 hover:scale-[1.02] hover:shadow-glow;
+  }
+
+  .btn-secondary {
+    @apply bg-card text-foreground rounded-lg px-4 py-2 font-medium border border-border;
+    @apply transition-all duration-200 hover:scale-[1.02] hover:border-primary;
+  }
+
+  .input-base {
+    @apply w-full rounded-lg border border-border bg-card px-4 py-2 font-normal;
+    @apply text-foreground placeholder:text-muted-foreground;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  }
+
+  .sidebar-link-active {
+    @apply bg-primary/10 text-primary border-l-2 border-primary;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
