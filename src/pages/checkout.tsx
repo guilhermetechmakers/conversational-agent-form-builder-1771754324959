@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Check, CreditCard, Loader2, Tag } from 'lucide-react'
+import { AlertCircle, Check, CreditCard, Loader2, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -35,11 +36,89 @@ type PromoFormData = z.infer<typeof promoCodeSchema>
 
 const VALID_PROMOS = ['SAVE10', 'WELCOME20', 'PRO50']
 
+function CheckoutPlanSkeleton() {
+  return (
+    <div
+      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12"
+      role="status"
+      aria-label="Loading subscription plans"
+      aria-busy="true"
+    >
+      {[1, 2, 3].map((i) => (
+        <Card key={i} className="overflow-hidden">
+          <CardHeader className="space-y-3">
+            <Skeleton className="h-4 w-16 rounded-md skeleton-shimmer" />
+            <Skeleton className="h-6 w-24 skeleton-shimmer" />
+            <Skeleton className="h-8 w-20 skeleton-shimmer" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {[1, 2, 3, 4].map((j) => (
+              <Skeleton key={j} className="h-4 w-full rounded-md skeleton-shimmer" />
+            ))}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+function PlansErrorState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center min-h-[280px] rounded-lg border border-border bg-card p-8 mb-8 sm:mb-12 animate-fade-in"
+      role="alert"
+      aria-live="assertive"
+      aria-label="Error loading plans"
+    >
+      <div className="rounded-full bg-destructive/10 p-5 mb-6 ring-4 ring-destructive/5">
+        <AlertCircle className="h-10 w-10 text-destructive shrink-0" aria-hidden />
+      </div>
+      <h3 className="font-semibold text-xl text-foreground text-center mb-2">
+        Failed to load plans
+      </h3>
+      <p className="text-muted-foreground text-center max-w-sm mb-6">
+        Something went wrong. Please try again.
+      </p>
+      <Button
+        variant="outline"
+        onClick={onRetry}
+        aria-label="Retry loading plans"
+        className="transition-all duration-200 hover:scale-[1.02] hover:shadow-glow"
+      >
+        Try again
+      </Button>
+    </div>
+  )
+}
+
+function PlansEmptyState() {
+  return (
+    <div
+      className="flex flex-col items-center justify-center min-h-[280px] rounded-lg border border-border bg-card p-8 mb-8 sm:mb-12 animate-fade-in"
+      role="status"
+      aria-live="polite"
+      aria-label="No plans available"
+    >
+      <div className="rounded-full bg-primary/10 p-5 mb-6 ring-4 ring-primary/5">
+        <CreditCard className="h-10 w-10 text-primary shrink-0" aria-hidden />
+      </div>
+      <h3 className="font-semibold text-xl text-foreground text-center mb-2">
+        No plans available
+      </h3>
+      <p className="text-muted-foreground text-center max-w-sm">
+        Check back later for subscription options.
+      </p>
+    </div>
+  )
+}
+
 export function CheckoutPage() {
   const [selectedPlan, setSelectedPlan] = useState('pro')
   const [isSubscribing, setIsSubscribing] = useState(false)
   const [isApplyingPromo, setIsApplyingPromo] = useState(false)
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null)
+  const [isPlansLoading, setIsPlansLoading] = useState(true)
+  const [plansError, setPlansError] = useState(false)
 
   const {
     register,
@@ -55,23 +134,37 @@ export function CheckoutPage() {
 
   const promoCode = watch('promoCode')
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPlansLoading(false)
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const retryLoadPlans = () => {
+    setPlansError(false)
+    setIsPlansLoading(true)
+    setTimeout(() => setIsPlansLoading(false), 800)
+  }
+
   const onApplyPromo = async (data: PromoFormData) => {
     if (!data.promoCode?.trim()) return
     setIsApplyingPromo(true)
     clearErrors('promoCode')
+    const toastId = toast.loading('Applying promo code...')
     try {
       await new Promise((resolve) => setTimeout(resolve, 800))
       const code = data.promoCode.trim().toUpperCase()
       if (VALID_PROMOS.includes(code)) {
         setAppliedPromo(code)
-        toast.success(`Promo code "${code}" applied!`)
+        toast.success(`Promo code "${code}" applied!`, { id: toastId })
       } else {
         setError('promoCode', { message: 'Invalid or expired promo code' })
-        toast.error('Invalid promo code')
+        toast.error('Invalid promo code', { id: toastId })
       }
     } catch {
       setError('promoCode', { message: 'Failed to apply promo code' })
-      toast.error('Something went wrong')
+      toast.error('Something went wrong', { id: toastId })
     } finally {
       setIsApplyingPromo(false)
     }
@@ -79,11 +172,12 @@ export function CheckoutPage() {
 
   const onSubscribe = async () => {
     setIsSubscribing(true)
+    const toastId = toast.loading('Processing payment...')
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000))
-      toast.success('Subscription started! (Stripe integration coming soon)')
+      toast.success('Subscription started! (Stripe integration coming soon)', { id: toastId })
     } catch {
-      toast.error('Payment failed. Please try again.')
+      toast.error('Payment failed. Please try again.', { id: toastId })
     } finally {
       setIsSubscribing(false)
     }
@@ -99,54 +193,62 @@ export function CheckoutPage() {
           </p>
         </header>
 
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12"
-          role="group"
-          aria-label="Subscription plans"
-        >
-          {plans.map((plan) => (
-            <Card
-              key={plan.id}
-              className={cn(
-                'cursor-pointer transition-all duration-200',
-                'hover:shadow-card-hover hover:scale-[1.02] active:scale-[0.98]',
-                'focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background',
-                selectedPlan === plan.id && 'border-primary ring-2 ring-primary/20 shadow-card-hover'
-              )}
-              onClick={() => setSelectedPlan(plan.id)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  setSelectedPlan(plan.id)
-                }
-              }}
-              tabIndex={0}
-              role="button"
-              aria-pressed={selectedPlan === plan.id}
-              aria-label={`Select ${plan.name} plan for $${plan.price} per month`}
-            >
-              <CardHeader>
-                {plan.popular && (
-                  <span className="text-xs font-medium text-primary">Popular</span>
+        {isPlansLoading ? (
+          <CheckoutPlanSkeleton />
+        ) : plansError ? (
+          <PlansErrorState onRetry={retryLoadPlans} />
+        ) : plans.length === 0 ? (
+          <PlansEmptyState />
+        ) : (
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12"
+            role="group"
+            aria-label="Subscription plans"
+          >
+            {plans.map((plan) => (
+              <Card
+                key={plan.id}
+                className={cn(
+                  'cursor-pointer transition-all duration-200',
+                  'hover:shadow-card-hover hover:scale-[1.02] active:scale-[0.98]',
+                  'focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background',
+                  selectedPlan === plan.id && 'border-primary ring-2 ring-primary/20 shadow-card-hover'
                 )}
-                <CardTitle>{plan.name}</CardTitle>
-                <CardDescription>
-                  <span className="text-2xl font-bold text-foreground">${plan.price}</span>/mo
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2" role="list">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Check className="h-4 w-4 text-primary shrink-0" aria-hidden />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                onClick={() => setSelectedPlan(plan.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelectedPlan(plan.id)
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-pressed={selectedPlan === plan.id}
+                aria-label={`Select ${plan.name} plan for $${plan.price} per month`}
+              >
+                <CardHeader>
+                  {plan.popular && (
+                    <span className="text-xs font-medium text-primary">Popular</span>
+                  )}
+                  <CardTitle>{plan.name}</CardTitle>
+                  <CardDescription>
+                    <span className="text-2xl font-bold text-foreground">${plan.price}</span>/mo
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2" role="list">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Check className="h-4 w-4 text-primary shrink-0" aria-hidden />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         <Card className="animate-fade-in-up">
           <CardHeader>
@@ -227,6 +329,7 @@ export function CheckoutPage() {
                   onClick={handlePromoSubmit(onApplyPromo)}
                   disabled={!promoCode?.trim() || isApplyingPromo}
                   className="sm:w-auto min-h-[2.5rem]"
+                  aria-label={isApplyingPromo ? 'Applying promo code' : 'Apply promo code'}
                 >
                   {isApplyingPromo ? (
                     <>
@@ -253,7 +356,9 @@ export function CheckoutPage() {
             <Button
               className="w-full min-h-[2.75rem] sm:min-h-10"
               onClick={onSubscribe}
-              disabled={isSubscribing}
+              disabled={isSubscribing || isPlansLoading}
+              aria-label={isSubscribing ? 'Processing payment' : `Subscribe to selected plan`}
+              aria-busy={isSubscribing}
             >
               {isSubscribing ? (
                 <>
