@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { hasRoleOrAbove } from '@/constants/rbac'
 import type { AuthRole } from '@/types/auth'
@@ -21,8 +22,17 @@ export function ProtectedRoute({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-8 w-8 animate-pulse rounded-full bg-primary/30" aria-hidden />
+      <div
+        className="flex min-h-[50vh] items-center justify-center p-4"
+        role="status"
+        aria-live="polite"
+        aria-label="Checking authentication status"
+      >
+        <Loader2
+          className="h-8 w-8 animate-spin text-primary"
+          aria-hidden
+        />
+        <span className="sr-only">Loading authentication</span>
       </div>
     )
   }
