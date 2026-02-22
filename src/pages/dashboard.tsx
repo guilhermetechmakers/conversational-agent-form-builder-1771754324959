@@ -36,7 +36,12 @@ export function DashboardPage() {
         : undefined,
   }
 
-  const { data: statsData, isLoading: statsLoading } = useDashboardStats()
+  const {
+    data: statsData,
+    isLoading: statsLoading,
+    isError: statsError,
+    error: statsErrorDetail,
+  } = useDashboardStats()
   const {
     data: agentsData,
     isLoading: agentsLoading,
@@ -79,7 +84,17 @@ export function DashboardPage() {
         </p>
       </div>
 
-      <QuickStatsPanel stats={stats} isLoading={statsLoading} />
+      <QuickStatsPanel
+        stats={stats}
+        isLoading={statsLoading}
+        error={
+          statsError && statsErrorDetail instanceof Error
+            ? statsErrorDetail.message
+            : statsError
+              ? 'Failed to load statistics'
+              : null
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <AgentList
