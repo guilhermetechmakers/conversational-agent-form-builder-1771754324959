@@ -30,25 +30,35 @@ const mockAgents: AgentListItem[] = [
 
 function AgentCardSkeleton() {
   return (
-    <Card className="shadow-card overflow-hidden">
+    <Card className="skeleton-shimmer overflow-hidden rounded-xl shadow-card">
       <CardHeader className="flex flex-row items-start justify-between pb-2">
         <div className="flex items-center gap-3">
-          <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
-          <div className="space-y-2 min-w-0">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-10 w-10 shrink-0 rounded-lg" />
+          <div className="min-w-0 space-y-2">
+            <Skeleton className="h-4 w-28 rounded-md" />
+            <Skeleton className="h-3 w-20 rounded-md" />
           </div>
         </div>
-        <Skeleton className="h-8 w-8 rounded-md shrink-0" />
+        <Skeleton className="h-8 w-8 shrink-0 rounded-md" />
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-24 rounded-md" />
+          <Skeleton className="h-4 w-20 rounded-md" />
         </div>
-        <Skeleton className="h-5 w-16 rounded-full mt-2" />
+        <Skeleton className="mt-2 h-5 w-16 rounded-full" />
       </CardContent>
     </Card>
+  )
+}
+
+function AgentsListSkeleton() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Loading agents">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <AgentCardSkeleton key={i} />
+      ))}
+    </div>
   )
 }
 
@@ -83,9 +93,9 @@ export function AgentsListPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Agents</h1>
+          <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">Agents</h1>
           <p className="mt-1 text-muted-foreground">
             Manage your conversational agents
           </p>
@@ -96,28 +106,28 @@ export function AgentsListPage() {
             Create Agent
           </Link>
         </Button>
-      </div>
+      </header>
 
-      <Card className="shadow-card">
-        <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <Input
-              placeholder="Search agents..."
-              className="max-w-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search agents"
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <AgentCardSkeleton key={i} />
-              ))}
+      <section aria-labelledby="agents-list-heading">
+        <h2 id="agents-list-heading" className="sr-only">
+          Agent list
+        </h2>
+        <Card className="rounded-xl shadow-card">
+          <CardHeader>
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Input
+                placeholder="Search agents..."
+                className="max-w-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search agents"
+              />
             </div>
-          ) : hasError ? (
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <AgentsListSkeleton />
+            ) : hasError ? (
             <div
               className="flex flex-col items-center justify-center py-16 text-center"
               role="alert"
@@ -142,7 +152,7 @@ export function AgentsListPage() {
             </div>
           ) : filteredAgents.length === 0 ? (
             <div
-              className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 py-16 text-center"
+              className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 py-16 text-center"
               role="status"
               aria-label="No agents"
             >
@@ -159,6 +169,8 @@ export function AgentsListPage() {
               </p>
               <Button
                 asChild
+                size="lg"
+                variant="default"
                 className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-glow"
               >
                 <Link to="/dashboard/agents/new">
@@ -172,7 +184,7 @@ export function AgentsListPage() {
               {filteredAgents.map((agent) => (
                 <Card
                   key={agent.id}
-                  className="group overflow-hidden shadow-card transition-all duration-300 hover:shadow-card-hover"
+                  className="group overflow-hidden rounded-xl shadow-card transition-all duration-300 hover:shadow-card-hover"
                 >
                   <CardHeader className="flex flex-row items-start justify-between pb-2">
                     <div className="flex min-w-0 items-center gap-3">
@@ -231,6 +243,7 @@ export function AgentsListPage() {
           )}
         </CardContent>
       </Card>
+      </section>
     </div>
   )
 }
